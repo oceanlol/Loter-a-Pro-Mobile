@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Lotería</title>
 
 <style>
 body {
     margin: 0;
-    font-family: Arial;
+    font-family: -apple-system, Arial;
     background: linear-gradient(#5b21b6, #4c1d95);
     color: white;
     text-align: center;
@@ -16,83 +16,93 @@ body {
 
 /* HEADER */
 .header {
-    padding: 15px;
-    font-size: 22px;
+    padding: 12px;
+    font-size: 20px;
     font-weight: bold;
 }
 
-/* CARD DISPLAY */
+/* CARD */
 .card-display {
-    margin: 20px auto;
-    width: 240px;
-    height: 320px;
+    margin: 15px auto;
+    width: 85%;
+    max-width: 280px;
+    height: 220px;
     background: #7c3aed;
     border-radius: 20px;
     display: flex;
-    align-items: center;
+    flex-direction: column;
     justify-content: center;
-    font-size: 22px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.4);
 }
 
-/* PLAY BUTTON */
+#cardName {
+    font-size: 22px;
+}
+
+#countdown {
+    font-size: 36px;
+    font-weight: bold;
+}
+
+/* BUTTONS */
 .play-btn {
-    width: 70px;
-    height: 70px;
+    width: 65px;
+    height: 65px;
     border-radius: 50%;
     background: #7c3aed;
     border: none;
-    font-size: 28px;
+    font-size: 26px;
     color: white;
-    cursor: pointer;
 }
 
-/* CONTROLS */
-.controls {
-    margin-top: 15px;
-}
-
-button.small {
-    padding: 8px 12px;
-    margin: 5px;
-    border-radius: 10px;
+.controls button {
+    margin: 4px;
+    padding: 8px 10px;
+    border-radius: 8px;
     border: none;
     background: #6d28d9;
     color: white;
 }
 
-/* CARD PICKER PANEL */
+/* INPUT */
+input {
+    width: 50px;
+    text-align: center;
+}
+
+/* PICKER (BOTTOM SHEET) */
 #picker {
     position: fixed;
     bottom: 0;
-    left: 0;
     width: 100%;
+    height: 70%;
     background: #111827;
-    border-top-left-radius: 15px;
-    border-top-right-radius: 15px;
-    max-height: 0;
-    overflow: hidden;
-    transition: 0.3s;
+    border-radius: 20px 20px 0 0;
+    transform: translateY(100%);
+    transition: transform 0.25s ease;
+}
+
+/* HANDLE */
+.handle {
+    width: 50px;
+    height: 5px;
+    background: gray;
+    border-radius: 10px;
+    margin: 10px auto;
 }
 
 /* GRID */
 #grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 6px;
     padding: 10px;
-}
-
-/* MOBILE STACK */
-@media (max-width: 500px) {
-    #grid {
-        grid-template-columns: repeat(3, 1fr);
-    }
+    overflow-y: auto;
+    height: calc(100% - 30px);
 }
 
 .card {
-    background: rgba(255,255,255,0.1);
-    padding: 8px;
+    background: #374151;
+    padding: 10px;
     border-radius: 8px;
     font-size: 11px;
 }
@@ -106,20 +116,26 @@ button.small {
 
 <body>
 
-<div class="header">Baraja de Lotería</div>
+<div class="header">Lotería</div>
 
-<div id="current" class="card-display">---</div>
+<div class="card-display">
+    <div id="cardName">---</div>
+    <div id="countdown">0</div>
+</div>
 
 <button class="play-btn" onclick="startAuto()">▶</button>
 
 <div class="controls">
-    <button class="small" onclick="stopAuto()">Stop</button>
-    <button class="small" onclick="resetGame()">Reset</button>
-    <button class="small" onclick="togglePicker()">Select Cards</button>
+    <button onclick="stopAuto()">Stop</button>
+    <button onclick="resetGame()">Reset</button>
+    <button onclick="openPicker()">Cards</button>
+    <br>
+    Speed: <input id="speed" value="4">s
 </div>
 
-<!-- PICKER PANEL -->
+<!-- PICKER -->
 <div id="picker">
+    <div class="handle"></div>
     <div id="grid"></div>
 </div>
 
@@ -141,10 +157,10 @@ const deck = [
 let selectedSet = new Set();
 let randomPool = [];
 let autoInterval = null;
-let callCount = 0;
-let pickerOpen = false;
+let countdownInterval = null;
+let timeLeft = 0;
 
-// BUILD GRID
+// BUILD GRID (FIXED CLICK)
 const grid = document.getElementById("grid");
 
 deck.forEach(card => {
@@ -152,7 +168,7 @@ deck.forEach(card => {
     div.className = "card";
     div.innerText = card;
 
-    div.onclick = () => {
+    div.addEventListener("click", () => {
         if (selectedSet.has(card)) {
             selectedSet.delete(card);
             div.classList.remove("selected");
@@ -160,60 +176,96 @@ deck.forEach(card => {
             selectedSet.add(card);
             div.classList.add("selected");
         }
-    };
+    });
 
     grid.appendChild(div);
 });
 
-// TOGGLE PICKER
-function togglePicker() {
-    const picker = document.getElementById("picker");
-    pickerOpen = !pickerOpen;
+// PICKER CONTROL
+const picker = document.getElementById("picker");
 
-    picker.style.maxHeight = pickerOpen ? "60%" : "0";
+function openPicker() {
+    picker.style.transform = "translateY(0)";
 }
 
-// SETUP
-function setupPools() {
+function closePicker() {
+    picker.style.transform = "translateY(100%)";
+}
+
+// DRAG (PHONE FIXED)
+let startY = 0;
+
+picker.addEventListener("touchstart", e => {
+    startY = e.touches[0].clientY;
+});
+
+picker.addEventListener("touchend", e => {
+    let endY = e.changedTouches[0].clientY;
+    let diff = endY - startY;
+
+    if (diff > 80) closePicker();
+});
+
+// GAME
+function setup() {
     randomPool = [...deck].sort(() => Math.random() - 0.5);
 }
 
-// SPEAK
 function speak(text) {
     speechSynthesis.cancel();
-    const msg = new SpeechSynthesisUtterance(text);
+    let msg = new SpeechSynthesisUtterance(text);
     msg.lang = "es-MX";
     speechSynthesis.speak(msg);
 }
 
-// NEXT CARD
 function nextCard() {
-    if (randomPool.length === 0) setupPools();
+    if (randomPool.length === 0) setup();
 
     const card = randomPool.shift();
-
-    document.getElementById("current").innerText = card;
+    document.getElementById("cardName").innerText = card;
     speak(card);
+
+    startCountdown();
 }
 
-// AUTO PLAY
+// COUNTDOWN
+function startCountdown() {
+    clearInterval(countdownInterval);
+
+    timeLeft = parseInt(document.getElementById("speed").value) || 4;
+
+    document.getElementById("countdown").innerText = timeLeft;
+
+    countdownInterval = setInterval(() => {
+        timeLeft--;
+        document.getElementById("countdown").innerText = timeLeft;
+
+        if (timeLeft <= 0) clearInterval(countdownInterval);
+    }, 1000);
+}
+
+// AUTO
 function startAuto() {
     if (autoInterval) return;
 
-    setupPools();
+    setup();
     nextCard();
 
-    autoInterval = setInterval(nextCard, 4000);
+    let speed = parseInt(document.getElementById("speed").value) || 4;
+
+    autoInterval = setInterval(nextCard, speed * 1000);
 }
 
 function stopAuto() {
     clearInterval(autoInterval);
+    clearInterval(countdownInterval);
     autoInterval = null;
 }
 
 function resetGame() {
     stopAuto();
-    document.getElementById("current").innerText = "---";
+    document.getElementById("cardName").innerText = "---";
+    document.getElementById("countdown").innerText = "0";
 }
 </script>
 
