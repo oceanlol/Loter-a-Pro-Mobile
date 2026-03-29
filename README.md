@@ -11,7 +11,7 @@ body {
     font-family: 'Segoe UI', Arial;
     background: black;
     color: white;
-    overflow: hidden;
+    overflow-x: hidden;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -35,23 +35,18 @@ body {
 
 .card-box {
     width: 100%;
-    min-height: 300px;
+    min-height: 250px;
     perspective: 1000px;
     margin-bottom: 15px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
 }
 
-/* push card a bit down so name is visible */
 .card-inner {
-    width: 90%;
-    height: 220px;
+    width: 100%;
+    height: 100%;
     border-radius: 20px;
     position: relative;
     transform-style: preserve-3d;
-    transition: transform 0.6s;
-    margin-bottom: 10px;
+    transition: transform 0.8s;
 }
 
 .card-front, .card-back {
@@ -64,13 +59,11 @@ body {
     justify-content: center;
     align-items: center;
     background: rgba(255,255,255,0.05);
-    box-shadow: 0 0 0 rgba(255,255,255,0);
-    transition: box-shadow 0.3s;
 }
 
 .card-front img {
     width: 90%;
-    max-height: 200px;
+    max-height: 180px;
     object-fit: contain;
     border-radius: 15px;
 }
@@ -82,26 +75,18 @@ body {
     font-weight: bold;
 }
 
-#cardName {
-    font-size: 28px;
-    font-weight: bold;
-    margin-top: 10px;
-}
-#countdown {
-    font-size: 40px;
-    margin-bottom: 5px;
-}
+#cardName { font-size: 24px; font-weight: bold; margin-top: 10px; }
+#countdown { font-size: 36px; margin-bottom: 5px; }
 
 button {
     background: rgba(255,255,255,0.08);
     border: none;
     color: white;
-    padding: 14px;
+    padding: 18px;
     margin: 8px 0;
     border-radius: 12px;
     width: 100%;
-    font-size: 18px;
-    transition: transform 0.1s;
+    font-size: 20px;
 }
 
 button:active {
@@ -125,7 +110,6 @@ button:active {
     border-bottom: 1px solid rgba(255,255,255,0.1);
 }
 
-/* Bounce animation for card after flip */
 @keyframes bounce {
     0% { transform: translateY(0); }
     30% { transform: translateY(-10px); }
@@ -135,11 +119,6 @@ button:active {
 }
 .bounce {
     animation: bounce 0.4s;
-}
-
-/* Glow effect while flipping */
-.glow {
-    box-shadow: 0 0 20px 5px rgba(255,255,255,0.7);
 }
 </style>
 </head>
@@ -153,7 +132,7 @@ button:active {
 <div class="card-box">
     <div class="card-inner" id="cardInner">
         <div class="card-front">
-            <img id="cardImage" src="https://via.placeholder.com/150?text=No+Image" alt="Card Image">
+            <img id="cardImage" src="https://via.placeholder.com/150?text=No+Image">
         </div>
         <div class="card-back">Lotería</div>
     </div>
@@ -176,7 +155,12 @@ Speed:
 </div>
 
 <script>
-// Deck
+// 🔥 UNLOCK AUDIO ON MOBILE
+document.body.addEventListener("click", () => {
+    speechSynthesis.resume();
+});
+
+// DECK
 const deck = [
 "El Gallo","El Diablo","La Dama","El Catrin","El Paraguas",
 "La Sirena","La Escalera","La Botella","El Barril","El Arbol",
@@ -191,95 +175,34 @@ const deck = [
 "La Palma","La Maceta","El Arpa","La Rana"
 ];
 
-let callerList = ["El Musico","El Catrin","La Dama","El Negrito"];
 let randomPool = [];
-let injectQueue = [];
-let blendMode = false;
-let callCount = 0;
 let autoInterval = null;
 let countdownInterval = null;
-let selectedVoice = null;
 let isSpeaking = false;
 
-// Card images
-const cardImages = {
-"El Gallo":"https://i.imgur.com/z1nEFgO.jpeg",
-"El Diablo":"https://i.imgur.com/rxWv6vK.jpeg",
-"La Dama":"https://i.imgur.com/XgDqiNl.jpeg",
-"El Catrin":"https://i.imgur.com/PpondFd.jpeg",
-"El Paraguas":"https://i.imgur.com/uRI9iNC.jpeg",
-"La Sirena":"https://i.imgur.com/8YJMkhu.jpeg",
-"La Escalera":"https://i.imgur.com/2uBrCdL.jpeg",
-"La Botella":"https://i.imgur.com/HyX7qfV.jpeg",
-"El Barril":"https://i.imgur.com/r3b4IY2.jpeg",
-"El Arbol":"https://i.imgur.com/3MLbB7C.jpeg",
-"El Melon":"https://i.imgur.com/frSRTj6.jpeg",
-"El Valiente":"https://i.imgur.com/WxwS83V.jpeg",
-"El Gorrito":"https://i.imgur.com/4CqxyVO.jpeg",
-"La Muerte":"https://i.imgur.com/izrshro.jpeg",
-"La Pera":"https://i.imgur.com/3bUxEox.jpeg",
-"La Bandera":"https://i.imgur.com/pQP8NNO.jpeg",
-"El Bandolon":"https://i.imgur.com/dxitjQN.jpeg",
-"El Violoncello":"https://i.imgur.com/ogjNjnA.jpeg",
-"La Garza":"https://i.imgur.com/vMKaIdv.jpeg",
-"El Pajaro":"https://i.imgur.com/uEiQBFO.jpeg",
-"La Mano":"https://i.imgur.com/VkKLlqr.jpeg",
-"La Bota":"https://i.imgur.com/NDBe5OH.jpeg",
-"La Luna":"https://i.imgur.com/e1fPz9R.jpeg",
-"El Cotorro":"https://i.imgur.com/gFq9O8O.jpeg",
-"El Borracho":"https://i.imgur.com/Y2TjiRl.jpeg",
-"El Negrito":"https://i.imgur.com/dCe9v1p.jpeg",
-"El Corazon":"https://i.imgur.com/q41EefM.jpeg",
-"La Sandia":"https://i.imgur.com/NDqOGAp.jpeg",
-"El Tambor":"https://i.imgur.com/vP4xdAG.jpeg",
-"El Camaron":"https://i.imgur.com/51Y9ucg.jpeg",
-"Las Jaras":"https://i.imgur.com/6j4KzKP.jpeg",
-"El Musico":"https://i.imgur.com/Dkp9VKW.jpeg",
-"La Arana":"https://i.imgur.com/b7iKPIi.jpeg",
-"El Soldado":"https://i.imgur.com/Q8G5bt3.jpeg",
-"La Estrella":"https://i.imgur.com/U5RrzEG.jpeg",
-"El Cazo":"https://i.imgur.com/aGCKp5q.jpeg",
-"El Mundo":"https://i.imgur.com/tPYzCG9.jpeg",
-"El Apache":"https://i.imgur.com/UB3jKbQ.jpeg",
-"El Nopal":"https://i.imgur.com/ZJvkH3F.jpeg",
-"El Alacran":"https://i.imgur.com/AVh1tlK.jpeg",
-"La Rosa":"https://i.imgur.com/Z35ozqa.jpeg",
-"La Calavera":"https://i.imgur.com/gsQI9gG.jpeg",
-"La Campana":"https://i.imgur.com/54E5hs5.jpeg",
-"El Cantarito":"https://i.imgur.com/92ajsYs.jpeg",
-"El Venado":"https://i.imgur.com/Ty0a9fh.jpeg",
-"El Sol":"https://i.imgur.com/0pWa6PF.jpeg",
-"La Corona":"https://i.imgur.com/vKPQeWp.jpeg",
-"La Chalupa":"https://i.imgur.com/WRjLeQ9.jpeg",
-"El Pino":"https://i.imgur.com/3g3mZ1j.jpeg",
-"El Pescado":"https://i.imgur.com/bjpjmtT.jpeg",
-"La Palma":"https://i.imgur.com/tIXKSL6.jpeg",
-"La Maceta":"https://i.imgur.com/XIXd4vn.jpeg",
-"El Arpa":"https://i.imgur.com/kCE4eI4.jpeg",
-"La Rana":"https://i.imgur.com/FrLUeDC.jpeg"
-};
+// SPEAK FIXED
+function speak(text, callback) {
+    if (!window.speechSynthesis) return;
 
-// SPEECH
-function loadVoice() {
+    let msg = new SpeechSynthesisUtterance(text);
     let voices = speechSynthesis.getVoices();
-    selectedVoice =
+
+    let voice =
         voices.find(v => v.lang === "es-MX") ||
         voices.find(v => v.lang.startsWith("es")) ||
         voices[0];
-}
-speechSynthesis.onvoiceschanged = loadVoice;
 
-function speak(text, callback) {
-    let msg = new SpeechSynthesisUtterance(text);
-    if (!selectedVoice) loadVoice();
-    if (selectedVoice) msg.voice = selectedVoice;
-    msg.rate = 0.8;
-    msg.pitch = 1;
-    isSpeaking = true;
+    if (voice) msg.voice = voice;
+
+    msg.rate = 0.85;
+
     msg.onend = () => {
         isSpeaking = false;
         if (callback) callback();
     };
+
+    isSpeaking = true;
+    speechSynthesis.cancel();
     speechSynthesis.speak(msg);
 }
 
@@ -288,35 +211,22 @@ function setup() {
     randomPool = [...deck].sort(() => Math.random() - 0.5);
 }
 
-// HISTORY
-let calledSet = new Set();
-function addToHistory(card) {
-    if (calledSet.has(card)) return;
-    calledSet.add(card);
-    let history = document.getElementById("history");
-    let item = document.createElement("div");
-    item.innerText = card;
-    history.prepend(item);
-}
-
-// DISPLAY CARD WITH FLIP + BOUNCE + GLOW
+// DISPLAY
 function displayCard(card) {
     const inner = document.getElementById("cardInner");
     const img = document.getElementById("cardImage");
 
-    inner.classList.add("glow");
     inner.style.transform = "rotateY(180deg)";
 
     setTimeout(() => {
-        img.src = cardImages[card] || "https://via.placeholder.com/150?text=No+Image";
-        img.alt = card;
+        img.src = "https://via.placeholder.com/150?text=" + card;
         document.getElementById("cardName").innerText = card;
-        speak(card);
-        addToHistory(card);
 
+        speak(card);
         inner.style.transform = "rotateY(0deg)";
         inner.classList.add("bounce");
-        setTimeout(() => { inner.classList.remove("bounce"); inner.classList.remove("glow"); }, 400);
+
+        setTimeout(()=>inner.classList.remove("bounce"),400);
     }, 400);
 
     startCountdown();
@@ -325,25 +235,21 @@ function displayCard(card) {
 // NEXT CARD
 function nextCard() {
     if (isSpeaking) return;
-    let card;
-    if (blendMode && injectQueue.length > 0 && callCount % 2 === 1) {
-        card = injectQueue.shift();
-    } else {
-        if (randomPool.length === 0) return;
-        card = randomPool.shift();
-    }
+    if (randomPool.length === 0) return;
+
+    let card = randomPool.shift();
     displayCard(card);
-    callCount++;
 }
 
-// START GAME
+// START
 function startGame() {
+    speechSynthesis.resume();
+
     stopAuto();
     setup();
-    callCount = 0;
-    calledSet.clear();
-    document.getElementById("history").innerHTML = "";
+
     let count = 1;
+
     let intro = setInterval(() => {
         if (count <= 3) {
             document.getElementById("cardName").innerText = count;
@@ -351,18 +257,13 @@ function startGame() {
             count++;
         } else {
             clearInterval(intro);
-            speak("Bienvenidos a la Lotería", () => {
+
+            speak("Bienvenidos", () => {
                 nextCard();
                 autoInterval = setInterval(nextCard, getSpeed()*1000);
             });
         }
     }, 1000);
-}
-
-// CALLER MODE
-function activateCaller() {
-    injectQueue = [...callerList].sort(() => Math.random() - 0.5);
-    blendMode = true;
 }
 
 // CONTROLS
@@ -375,14 +276,9 @@ function resetGame() {
     stopAuto();
     document.getElementById("cardName").innerText = "---";
     document.getElementById("countdown").innerText = "0";
-    document.getElementById("history").innerHTML = "";
-    const img = document.getElementById("cardImage");
-    img.src = "https://via.placeholder.com/150?text=No+Image";
-    const inner = document.getElementById("cardInner");
-    inner.style.transform = "rotateY(0deg)";
-    calledSet.clear();
 }
 
+// SPEED
 function getSpeed() {
     return parseInt(document.getElementById("speed").value);
 }
@@ -391,7 +287,9 @@ function getSpeed() {
 function startCountdown() {
     clearInterval(countdownInterval);
     let time = getSpeed();
+
     document.getElementById("countdown").innerText = time;
+
     countdownInterval = setInterval(() => {
         time--;
         document.getElementById("countdown").innerText = time;
@@ -402,22 +300,35 @@ function startCountdown() {
 // PARTICLES
 const canvas = document.getElementById("particles");
 const ctx = canvas.getContext("2d");
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+window.addEventListener("resize", resizeCanvas);
+resizeCanvas();
+
 let particles = [];
-for(let i=0;i<80;i++){
+for(let i=0;i<60;i++){
     particles.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, r:Math.random()*2, d:Math.random()*1});
 }
+
 function drawParticles(){
     ctx.clearRect(0,0,canvas.width,canvas.height);
     ctx.fillStyle = "white";
+
     particles.forEach(p=>{
         ctx.beginPath();
         ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
         ctx.fill();
+
         p.y += p.d;
-        if(p.y>canvas.height){p.y=0;p.x=Math.random()*canvas.width;}
+        if(p.y>canvas.height){
+            p.y=0;
+            p.x=Math.random()*canvas.width;
+        }
     });
+
     requestAnimationFrame(drawParticles);
 }
 drawParticles();
