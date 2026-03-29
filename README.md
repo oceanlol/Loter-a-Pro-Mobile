@@ -2,136 +2,114 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Lotería</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lotería Pro Mobile</title>
 
 <style>
 body {
     margin: 0;
-    font-family: -apple-system, Arial;
-    background: linear-gradient(#5b21b6, #4c1d95);
+    font-family: 'Segoe UI', Arial;
+    background: black;
     color: white;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 40px;
+}
+
+#particles {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+}
+
+.container {
+    position: relative;
+    z-index: 1;
+    width: 90%;
+    max-width: 400px;
     text-align: center;
 }
 
-.header {
-    padding: 12px;
-    font-size: 20px;
-    font-weight: bold;
-}
-
-.card-display {
-    margin: 15px auto;
-    width: 85%;
-    max-width: 280px;
-    height: 220px;
-    background: #7c3aed;
+.card-box {
+    width: 100%;
+    min-height: 250px;
     border-radius: 20px;
+    backdrop-filter: blur(15px);
+    background: rgba(255,255,255,0.05);
     display: flex;
     flex-direction: column;
     justify-content: center;
+    align-items: center;
+    padding: 15px;
 }
 
-#cardName {
-    font-size: 22px;
+.card-box img {
+    width: 80%;
+    max-height: 150px;
+    object-fit: contain;
+    margin-bottom: 10px;
+    border-radius: 15px;
+    background: rgba(255,255,255,0.05);
 }
 
-#countdown {
-    font-size: 36px;
-    font-weight: bold;
-}
+#cardName { font-size: 28px; font-weight: bold; margin-bottom: 5px; }
+#countdown { font-size: 40px; margin-bottom: 5px; }
 
-.play-btn {
-    width: 65px;
-    height: 65px;
-    border-radius: 50%;
-    background: #7c3aed;
+button {
+    background: rgba(255,255,255,0.08);
     border: none;
-    font-size: 26px;
     color: white;
-}
-
-.controls button {
-    margin: 4px;
-    padding: 8px 10px;
-    border-radius: 8px;
-    border: none;
-    background: #6d28d9;
-    color: white;
-}
-
-input {
-    width: 50px;
-    text-align: center;
-}
-
-#picker {
-    position: fixed;
-    bottom: 0;
+    padding: 14px;
+    margin: 8px 0;
+    border-radius: 12px;
     width: 100%;
-    height: 70%;
-    background: #111827;
-    border-radius: 20px 20px 0 0;
-    transform: translateY(100%);
-    transition: transform 0.25s ease;
+    font-size: 18px;
 }
 
-.handle {
-    width: 50px;
-    height: 5px;
-    background: gray;
-    border-radius: 10px;
-    margin: 10px auto;
-}
-
-#grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 6px;
-    padding: 10px;
+.history {
+    margin-top: 10px;
+    max-height: 120px;
     overflow-y: auto;
-    height: calc(100% - 30px);
-}
-
-.card {
-    background: #374151;
-    padding: 10px;
-    border-radius: 8px;
-    font-size: 11px;
-}
-
-.selected {
-    background: #22c55e;
-    color: black;
+    font-size: 14px;
+    text-align: left;
+    background: rgba(255,255,255,0.05);
+    padding: 8px;
+    border-radius: 10px;
 }
 </style>
 </head>
 
 <body>
 
-<div class="header">Lotería</div>
+<canvas id="particles"></canvas>
 
-<div class="card-display">
+<div class="container">
+
+<div class="card-box">
+    <img id="cardImage" src="https://via.placeholder.com/150?text=No+Image" alt="Card Image">
     <div id="cardName">---</div>
     <div id="countdown">0</div>
 </div>
 
-<button class="play-btn" onclick="startAuto()">▶</button>
+<button onclick="startGame()">▶</button>
+<button onclick="activateCaller()">Caller Mode</button>
+<button onclick="stopAuto()">Stop</button>
+<button onclick="resetGame()">Reset</button>
 
-<div class="controls">
-    <button onclick="stopAuto()">Stop</button>
-    <button onclick="resetGame()">Reset</button>
-    <button onclick="openPicker()">Cards</button>
-    <br>
-    Speed: <input id="speed" value="4">s
+<div>
+Speed:
+<input type="range" id="speed" min="1" max="10" value="4">
 </div>
 
-<div id="picker">
-    <div class="handle"></div>
-    <div id="grid"></div>
+<div class="history" id="history"></div>
+
 </div>
 
 <script>
+// Deck
 const deck = [
 "El Gallo","El Diablo","La Dama","El Catrin","El Paraguas",
 "La Sirena","La Escalera","La Botella","El Barril","El Arbol",
@@ -146,142 +124,227 @@ const deck = [
 "La Palma","La Maceta","El Arpa","La Rana"
 ];
 
-let selectedSet = new Set();
+// Caller list
+let callerList = ["El Musico","El Catrin","La Dama","El Negrito"];
+
 let randomPool = [];
+let injectQueue = [];
+let blendMode = false;
+let callCount = 0;
+
 let autoInterval = null;
 let countdownInterval = null;
-let timeLeft = 0;
+let selectedVoice = null;
+let isSpeaking = false;
 
-// BUILD GRID
-const grid = document.getElementById("grid");
+// Card images
+const cardImages = {
+"El Gallo":"https://i.imgur.com/z1nEFgO.jpeg",
+"El Diablo":"https://i.imgur.com/rxWv6vK.jpeg",
+"La Dama":"https://i.imgur.com/XgDqiNl.jpeg",
+"El Catrin":"https://i.imgur.com/PpondFd.jpeg",
+"El Paraguas":"https://i.imgur.com/uRI9iNC.jpeg",
+"La Sirena":"https://i.imgur.com/8YJMkhu.jpeg",
+"La Escalera":"https://i.imgur.com/2uBrCdL.jpeg",
+"La Botella":"https://i.imgur.com/HyX7qfV.jpeg",
+"El Barril":"https://i.imgur.com/r3b4IY2.jpeg",
+"El Arbol":"https://i.imgur.com/3MLbB7C.jpeg",
+"El Melon":"https://i.imgur.com/frSRTj6.jpeg",
+"El Valiente":"https://i.imgur.com/WxwS83V.jpeg",
+"El Gorrito":"https://i.imgur.com/4CqxyVO.jpeg",
+"La Muerte":"https://i.imgur.com/izrshro.jpeg",
+"La Pera":"https://i.imgur.com/3bUxEox.jpeg",
+"La Bandera":"https://i.imgur.com/pQP8NNO.jpeg",
+"El Bandolon":"https://i.imgur.com/dxitjQN.jpeg",
+"El Violoncello":"https://i.imgur.com/ogjNjnA.jpeg",
+"La Garza":"https://i.imgur.com/vMKaIdv.jpeg",
+"El Pajaro":"https://i.imgur.com/uEiQBFO.jpeg",
+"La Mano":"https://i.imgur.com/VkKLlqr.jpeg",
+"La Bota":"https://i.imgur.com/NDBe5OH.jpeg",
+"La Luna":"https://i.imgur.com/e1fPz9R.jpeg",
+"El Cotorro":"https://i.imgur.com/gFq9O8O.jpeg",
+"El Borracho":"https://i.imgur.com/Y2TjiRl.jpeg",
+"El Negrito":"https://i.imgur.com/dCe9v1p.jpeg",
+"El Corazon":"https://i.imgur.com/q41EefM.jpeg",
+"La Sandia":"https://i.imgur.com/NDqOGAp.jpeg",
+"El Tambor":"https://i.imgur.com/vP4xdAG.jpeg",
+"El Camaron":"https://i.imgur.com/51Y9ucg.jpeg",
+"Las Jaras":"https://i.imgur.com/6j4KzKP.jpeg",
+"El Musico":"https://i.imgur.com/6j4KzKP.jpeg",
+"La Arana":"https://i.imgur.com/b7iKPIi.jpeg",
+"El Soldado":"https://i.imgur.com/Q8G5bt3.jpeg",
+"La Estrella":"https://i.imgur.com/U5RrzEG.jpeg",
+"El Cazo":"https://i.imgur.com/aGCKp5q.jpeg",
+"El Mundo":"https://i.imgur.com/tPYzCG9.jpeg",
+"El Apache":"https://i.imgur.com/UB3jKbQ.jpeg",
+"El Nopal":"https://i.imgur.com/ZJvkH3F.jpeg",
+"El Alacran":"https://i.imgur.com/AVh1tlK.jpeg",
+"La Rosa":"https://i.imgur.com/Z35ozqa.jpeg",
+"La Calavera":"https://i.imgur.com/gsQI9gG.jpeg",
+"La Campana":"https://i.imgur.com/54E5hs5.jpeg",
+"El Cantarito":"https://i.imgur.com/92ajsYs.jpeg",
+"El Venado":"https://i.imgur.com/Ty0a9fh.jpeg",
+"El Sol":"https://i.imgur.com/0pWa6PF.jpeg",
+"La Corona":"https://i.imgur.com/vKPQeWp.jpeg",
+"La Chalupa":"https://i.imgur.com/WRjLeQ9.jpeg",
+"El Pino":"https://i.imgur.com/3g3mZ1j.jpeg",
+"El Pescado":"https://i.imgur.com/bjpjmtT.jpeg",
+"La Palma":"https://i.imgur.com/tIXKSL6.jpeg",
+"La Maceta":"https://i.imgur.com/XIXd4vn.jpeg",
+"El Arpa":"https://i.imgur.com/kCE4eI4.jpeg",
+"La Rana":"https://i.imgur.com/FrLUeDC.jpeg"
+};
 
-deck.forEach(card => {
-    const div = document.createElement("div");
-    div.className = "card";
-    div.innerText = card;
-
-    div.addEventListener("click", () => {
-        if (selectedSet.has(card)) {
-            selectedSet.delete(card);
-            div.classList.remove("selected");
-        } else {
-            selectedSet.add(card);
-            div.classList.add("selected");
-        }
-    });
-
-    grid.appendChild(div);
-});
-
-// PICKER
-const picker = document.getElementById("picker");
-
-function openPicker() {
-    picker.style.transform = "translateY(0)";
+// SPEECH
+function loadVoice() {
+    let voices = speechSynthesis.getVoices();
+    selectedVoice =
+        voices.find(v => v.lang === "es-MX") ||
+        voices.find(v => v.lang.startsWith("es")) ||
+        voices[0];
 }
+speechSynthesis.onvoiceschanged = loadVoice;
 
-function closePicker() {
-    picker.style.transform = "translateY(100%)";
-}
-
-// DRAG
-let startY = 0;
-
-picker.addEventListener("touchstart", e => {
-    startY = e.touches[0].clientY;
-});
-
-picker.addEventListener("touchend", e => {
-    let endY = e.changedTouches[0].clientY;
-    if (endY - startY > 80) closePicker();
-});
-
-// SETUP (FIXED)
-function setup() {
-    if (selectedSet.size > 0) {
-        randomPool = [...selectedSet];
-    } else {
-        randomPool = [...deck];
-    }
-
-    randomPool = randomPool.sort(() => Math.random() - 0.5);
-}
-
-// SPEAK
-function speak(text) {
-    speechSynthesis.cancel();
-
-    const msg = new SpeechSynthesisUtterance(text);
-    msg.lang = "es-MX";
-
-    const voices = speechSynthesis.getVoices();
-    const spanish = voices.find(v => v.lang.includes("es"));
-    if (spanish) msg.voice = spanish;
-
+function speak(text, callback) {
+    let msg = new SpeechSynthesisUtterance(text);
+    if (!selectedVoice) loadVoice();
+    if (selectedVoice) msg.voice = selectedVoice;
+    msg.rate = 0.8;
+    msg.pitch = 1;
+    isSpeaking = true;
+    msg.onend = () => {
+        isSpeaking = false;
+        if (callback) callback();
+    };
     speechSynthesis.speak(msg);
+}
+
+// SETUP
+function setup() {
+    randomPool = [...deck].sort(() => Math.random() - 0.5);
+}
+
+// HISTORY
+let calledSet = new Set();
+function addToHistory(card) {
+    if (calledSet.has(card)) return;
+    calledSet.add(card);
+    let history = document.getElementById("history");
+    let item = document.createElement("div");
+    item.innerText = card;
+    history.prepend(item);
+}
+
+// DISPLAY CARD
+function displayCard(card) {
+    document.getElementById("cardName").innerText = card;
+    const img = document.getElementById("cardImage");
+    img.src = cardImages[card] || "https://via.placeholder.com/150?text=No+Image";
+    img.alt = card;
+    img.onerror = () => {
+        img.src = "https://via.placeholder.com/150?text=No+Image";
+    };
+    speak(card);
+    addToHistory(card);
+    startCountdown();
 }
 
 // NEXT CARD
 function nextCard() {
-    if (randomPool.length === 0) setup();
-
-    const card = randomPool.shift();
-    document.getElementById("cardName").innerText = card;
-
-    speak(card);
-    startCountdown();
+    if (isSpeaking) return;
+    let card;
+    if (blendMode && injectQueue.length > 0 && callCount % 2 === 1) {
+        card = injectQueue.shift();
+    } else {
+        if (randomPool.length === 0) return;
+        card = randomPool.shift();
+    }
+    displayCard(card);
+    callCount++;
 }
 
-// COUNTDOWN
-function startCountdown() {
-    clearInterval(countdownInterval);
-
-    timeLeft = getSpeed();
-    updateCountdown();
-
-    countdownInterval = setInterval(() => {
-        timeLeft--;
-        updateCountdown();
-        if (timeLeft <= 0) clearInterval(countdownInterval);
+// START GAME
+function startGame() {
+    stopAuto();
+    setup();
+    callCount = 0;
+    calledSet.clear();
+    document.getElementById("history").innerHTML = "";
+    let count = 1;
+    let intro = setInterval(() => {
+        if (count <= 3) {
+            document.getElementById("cardName").innerText = count;
+            speak(String(count));
+            count++;
+        } else {
+            clearInterval(intro);
+            speak("Bienvenidos a la Lotería", () => {
+                nextCard();
+                autoInterval = setInterval(nextCard, getSpeed()*1000);
+            });
+        }
     }, 1000);
 }
 
-function updateCountdown() {
-    document.getElementById("countdown").innerText = timeLeft;
+// CALLER MODE
+function activateCaller() {
+    injectQueue = [...callerList].sort(() => Math.random() - 0.5);
+    blendMode = true;
 }
 
-function getSpeed() {
-    return parseInt(document.getElementById("speed").value) || 4;
-}
-
-// START
-function startAuto() {
-    speechSynthesis.resume();
-
-    stopAuto();
-    setup();
-    closePicker();
-
-    nextCard();
-
-    autoInterval = setInterval(() => {
-        nextCard();
-    }, getSpeed() * 1000);
-}
-
-// STOP
+// CONTROLS
 function stopAuto() {
     clearInterval(autoInterval);
     clearInterval(countdownInterval);
-    autoInterval = null;
 }
 
-// RESET
 function resetGame() {
     stopAuto();
     document.getElementById("cardName").innerText = "---";
     document.getElementById("countdown").innerText = "0";
+    document.getElementById("history").innerHTML = "";
+    document.getElementById("cardImage").src = "https://via.placeholder.com/150?text=No+Image";
+    calledSet.clear();
 }
+
+function getSpeed() {
+    return parseInt(document.getElementById("speed").value);
+}
+
+// TIMER
+function startCountdown() {
+    clearInterval(countdownInterval);
+    let time = getSpeed();
+    document.getElementById("countdown").innerText = time;
+    countdownInterval = setInterval(() => {
+        time--;
+        document.getElementById("countdown").innerText = time;
+        if (time <= 0) clearInterval(countdownInterval);
+    }, 1000);
+}
+
+// PARTICLES
+const canvas = document.getElementById("particles");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+let particles = [];
+for(let i=0;i<80;i++){
+    particles.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, r:Math.random()*2, d:Math.random()*1});
+}
+function drawParticles(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle = "white";
+    particles.forEach(p=>{
+        ctx.beginPath();
+        ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+        ctx.fill();
+        p.y += p.d;
+        if(p.y>canvas.height){p.y=0;p.x=Math.random()*canvas.width;}
+    });
+    requestAnimationFrame(drawParticles);
+}
+drawParticles();
 </script>
 
 </body>
