@@ -1,207 +1,126 @@
-
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lotería Pro Mobile</title>
+<title>Lotería Pro Full</title>
 
 <style>
-body {
-    margin: 0;
-    font-family: 'Segoe UI', Arial;
-    background: black;
-    color: white;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding-top: 40px;
+body{
+    margin:0;
+    font-family:Arial;
+    background:black;
+    color:white;
+    text-align:center;
+    padding-top:60px;
 }
 
-#particles {
-    position: fixed;
-    width: 100%;
-    height: 100%;
-    z-index: 0;
+.card-container{
+    margin-top:20px;
+    perspective:1000px;
 }
 
-.container {
-    position: relative;
-    z-index: 1;
-    width: 90%;
-    max-width: 400px;
-    text-align: center;
+.card{
+    width:90%;
+    max-width:320px;
+    height:250px;
+    margin:auto;
+    position:relative;
+    transform-style:preserve-3d;
+    transition:0.6s;
 }
 
-.card-box {
-    width: 100%;
-    min-height: 320px;
-    perspective: 1200px;
-    margin-bottom: 15px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+.face{
+    position:absolute;
+    width:100%;
+    height:100%;
+    backface-visibility:hidden;
+    border-radius:15px;
 }
 
-/* Card styles */
-.card-inner {
-    width: 90%;
-    height: 220px;
-    border-radius: 20px;
-    position: relative;
-    transform-style: preserve-3d;
-    transition: transform 0.5s;
-    margin-bottom: 10px;
+.front img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    border-radius:15px;
 }
 
-.card-front, .card-back {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    border-radius: 20px;
-    backface-visibility: hidden;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: rgba(255,255,255,0.05);
-    box-shadow: 0 0 0 rgba(255,255,255,0);
-    transition: box-shadow 0.3s;
+.back{
+    background:#111;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:30px;
+    transform:rotateY(180deg);
 }
 
-.card-front img {
-    width: 90%;
-    max-height: 200px;
-    object-fit: contain;
-    border-radius: 15px;
+#cardName{
+    font-size:24px;
+    margin-top:15px;
 }
 
-.card-back {
-    background: rgba(255,255,255,0.08);
-    transform: rotateY(180deg);
-    font-size: 28px;
-    font-weight: bold;
+button{
+    width:90%;
+    padding:15px;
+    margin:6px;
+    border:none;
+    border-radius:10px;
+    background:#222;
+    color:white;
+    font-size:18px;
 }
 
-#cardName {
-    font-size: 28px;
-    font-weight: bold;
-    margin-top: 10px;
-}
-#countdown {
-    font-size: 40px;
-    margin-bottom: 5px;
+button:active{
+    transform:scale(0.95);
 }
 
-/* Buttons with click tilt & shadow */
-button {
-    background: rgba(255,255,255,0.08);
-    border: none;
-    color: white;
-    padding: 14px;
-    margin: 8px 0;
-    border-radius: 12px;
-    width: 100%;
-    font-size: 18px;
-    cursor: pointer;
-    transition: transform 0.1s, box-shadow 0.1s;
-}
-
-button:active {
-    transform: scale(0.95) rotateX(3deg);
-    box-shadow: 0 4px 12px rgba(255,255,255,0.4);
-}
-
-.history {
-    margin-top: 10px;
-    max-height: 180px;
-    overflow-y: auto;
-    font-size: 14px;
-    text-align: left;
-    background: rgba(255,255,255,0.05);
-    padding: 8px;
-    border-radius: 10px;
-    width: 100%;
-}
-
-.history div {
-    padding: 4px;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-}
-
-/* Bounce and glow for card flip */
-@keyframes bounce {
-    0% { transform: translateY(0); }
-    30% { transform: translateY(-10px); }
-    50% { transform: translateY(0); }
-    70% { transform: translateY(-5px); }
-    100% { transform: translateY(0); }
-}
-.bounce {
-    animation: bounce 0.4s;
-}
-
-.glow {
-    box-shadow: 0 0 25px 8px rgba(255,255,255,0.8);
+.history{
+    margin-top:10px;
+    max-height:150px;
+    overflow:auto;
+    background:#111;
+    border-radius:10px;
+    padding:10px;
+    text-align:left;
 }
 </style>
 </head>
 
 <body>
 
-<canvas id="particles"></canvas>
+<h2>Lotería</h2>
 
-<div class="container">
-
-<div class="card-box">
-    <div class="card-inner" id="cardInner">
-        <div class="card-front">
-            <img id="cardImage" src="https://via.placeholder.com/150?text=No+Image" alt="Card Image">
+<div class="card-container">
+    <div class="card" id="card">
+        <div class="face front">
+            <img id="img" src="https://via.placeholder.com/300">
         </div>
-        <div class="card-back">Lotería</div>
+        <div class="face back">🎴</div>
     </div>
-    <div id="cardName">---</div>
-    <div id="countdown">0</div>
 </div>
 
-<button onclick="startGame()">▶ Start</button>
-<button onclick="activateCaller()">Caller Mode</button>
-<button onclick="stopAuto()">Stop</button>
+<div id="cardName">---</div>
+
+<button onclick="start()">Start</button>
+<button onclick="next()">Next</button>
 <button onclick="resetGame()">Reset</button>
-
-<div>
-Speed:
-<input type="range" id="speed" min="1" max="10" value="4">
-</div>
 
 <div class="history" id="history"></div>
 
-</div>
-
 <script>
-// Deck & card images
-const deck = ["El Gallo","El Diablo","La Dama","El Catrin","El Paraguas",
-"La Sirena","La Escalera","La Botella","El Barril","El Arbol",
-"El Melon","El Valiente","El Gorrito","La Muerte","La Pera",
-"La Bandera","El Bandolon","El Violoncello","La Garza","El Pajaro",
-"La Mano","La Bota","La Luna","El Cotorro","El Borracho",
-"El Negrito","El Corazon","La Sandia","El Tambor","El Camaron",
-"Las Jaras","El Musico","La Arana","El Soldado","La Estrella",
-"El Cazo","El Mundo","El Apache","El Nopal","El Alacran",
-"La Rosa","La Calavera","La Campana","El Cantarito","El Venado",
-"El Sol","La Corona","La Chalupa","El Pino","El Pescado",
-"La Palma","La Maceta","El Arpa","La Rana"];
 
-let callerList = ["El Musico","El Catrin","La Dama","El Negrito"];
-let randomPool = [];
-let injectQueue = [];
-let blendMode = false;
-let callCount = 0;
-let autoInterval = null;
-let countdownInterval = null;
-let isSpeaking = false;
-let calledSet = new Set();
+// 🔥 FULL 54 CARD DECK
+const deck = [
+"El Gallo","El Diablo","La Dama","El Catrin","El Paraguas","La Sirena","La Escalera","La Botella",
+"El Barril","El Arbol","El Melon","El Valiente","El Gorrito","La Muerte","La Pera","La Bandera",
+"El Bandolon","El Violoncello","La Garza","El Pajaro","La Mano","La Bota","La Luna","El Cotorro",
+"El Borracho","El Negrito","El Corazon","La Sandia","El Tambor","El Camaron","Las Jaras","El Musico",
+"La Arana","El Soldado","La Estrella","El Cazo","El Mundo","El Apache","El Nopal","El Alacran",
+"La Rosa","La Calavera","La Campana","El Cantarito","El Venado","El Sol","La Corona","La Chalupa",
+"El Pino","El Pescado","La Palma","La Maceta","El Arpa","La Rana"
+];
 
-const cardImages = {
+// 🔥 ALL IMAGES (YOUR LINKS)
+const images = {
 "El Gallo":"https://i.imgur.com/z1nEFgO.jpeg",
 "El Diablo":"https://i.imgur.com/rxWv6vK.jpeg",
 "La Dama":"https://i.imgur.com/XgDqiNl.jpeg",
@@ -258,160 +177,66 @@ const cardImages = {
 "La Rana":"https://i.imgur.com/FrLUeDC.jpeg"
 };
 
-// SPEECH
-let selectedVoice;
-function loadVoice() {
-    let voices = speechSynthesis.getVoices();
-    selectedVoice =
-        voices.find(v => v.lang === "es-MX") ||
-        voices.find(v => v.lang.startsWith("es")) ||
-        voices[0];
-}
-speechSynthesis.onvoiceschanged = loadVoice;
+let pool = [];
+let used = new Set();
+let voice;
 
-function speak(text, callback) {
+// 🎤 VOICE FIX
+function loadVoices(){
+    let voices = speechSynthesis.getVoices();
+    voice = voices.find(v=>v.lang.includes("es")) || voices[0];
+}
+speechSynthesis.onvoiceschanged = loadVoices;
+
+function speak(text){
     let msg = new SpeechSynthesisUtterance(text);
-    if (!selectedVoice) loadVoice();
-    if (selectedVoice) msg.voice = selectedVoice;
-    msg.rate = 0.8;
-    msg.pitch = 1;
-    isSpeaking = true;
-    msg.onend = () => { isSpeaking = false; if(callback) callback(); };
+    msg.voice = voice;
+    msg.rate = 0.9;
     speechSynthesis.speak(msg);
 }
 
-// SETUP
-function setup() {
-    randomPool = deck.filter(c => !calledSet.has(c)).sort(()=>Math.random()-0.5);
+// START
+function start(){
+    speechSynthesis.speak(new SpeechSynthesisUtterance("")); // unlock
+    pool = [...deck].sort(()=>Math.random()-0.5);
+    used.clear();
+    document.getElementById("history").innerHTML="";
 }
 
-// HISTORY
-function addToHistory(card) {
-    if (calledSet.has(card)) return;
-    calledSet.add(card);
-    let history = document.getElementById("history");
-    let item = document.createElement("div");
-    item.innerText = card;
-    history.prepend(item);
-}
+// NEXT (NO DUPES)
+function next(){
+    if(pool.length===0) return;
 
-// DISPLAY CARD
-function displayCard(card) {
-    const inner = document.getElementById("cardInner");
-    const img = document.getElementById("cardImage");
+    let card = pool.shift();
+    used.add(card);
 
-    inner.classList.add("glow");
-    inner.style.transform = "rotateY(180deg)";
+    let cardEl = document.getElementById("card");
+    cardEl.style.transform="rotateY(180deg)";
 
     setTimeout(()=>{
-        img.src = cardImages[card] || "https://via.placeholder.com/150?text=No+Image";
-        img.alt = card;
+        let img = document.getElementById("img");
+        img.onerror=()=> img.src="https://via.placeholder.com/300?text=Error";
+        img.src = images[card];
+
         document.getElementById("cardName").innerText = card;
         speak(card);
-        addToHistory(card);
 
-        inner.style.transform = "rotateY(0deg)";
-        inner.classList.add("bounce");
-        setTimeout(()=>{ inner.classList.remove("bounce"); inner.classList.remove("glow"); },400);
-    },400);
+        let h = document.createElement("div");
+        h.innerText = card;
+        document.getElementById("history").prepend(h);
 
-    startCountdown();
+        cardEl.style.transform="rotateY(0deg)");
+    },300);
 }
 
-// NEXT CARD
-function nextCard() {
-    if(isSpeaking) return;
-    let card;
-    if(blendMode && injectQueue.length>0 && callCount%2===1){
-        card = injectQueue.shift();
-    } else {
-        if(randomPool.length===0) return;
-        card = randomPool.shift();
-    }
-    displayCard(card);
-    callCount++;
-}
-
-// START GAME
-function startGame() {
-    stopAuto();
-    setup();
-    callCount = 0;
-    document.getElementById("history").innerHTML = "";
-    let count = 1;
-    let intro = setInterval(()=>{
-        if(count<=3){
-            document.getElementById("cardName").innerText=count;
-            speak(String(count));
-            count++;
-        } else {
-            clearInterval(intro);
-            speak("Bienvenidos a la Lotería", ()=>{
-                nextCard();
-                autoInterval = setInterval(nextCard,getSpeed()*1000);
-            });
-        }
-    },1000);
-}
-
-// CALLER MODE
-function activateCaller() {
-    injectQueue = callerList.filter(c=>!calledSet.has(c)).sort(()=>Math.random()-0.5);
-    blendMode=true;
-}
-
-// CONTROLS
-function stopAuto() {
-    clearInterval(autoInterval);
-    clearInterval(countdownInterval);
-}
-
-function resetGame() {
-    stopAuto();
-    document.getElementById("cardName").innerText="---";
-    document.getElementById("countdown").innerText="0";
+// RESET
+function resetGame(){
+    used.clear();
     document.getElementById("history").innerHTML="";
-    document.getElementById("cardImage").src="https://via.placeholder.com/150?text=No+Image";
-    document.getElementById("cardInner").style.transform="rotateY(0deg)";
+    document.getElementById("cardName").innerText="---";
 }
 
-// SPEED
-function getSpeed(){ return parseInt(document.getElementById("speed").value); }
-
-// TIMER
-function startCountdown(){
-    clearInterval(countdownInterval);
-    let time = getSpeed();
-    document.getElementById("countdown").innerText = time;
-    countdownInterval=setInterval(()=>{
-        time--;
-        document.getElementById("countdown").innerText = time;
-        if(time<=0) clearInterval(countdownInterval);
-    },1000);
-}
-
-// PARTICLES
-const canvas = document.getElementById("particles");
-const ctx = canvas.getContext("2d");
-canvas.width=window.innerWidth;
-canvas.height=window.innerHeight;
-let particles=[];
-for(let i=0;i<80;i++){
-    particles.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, r:Math.random()*2, d:Math.random()*1});
-}
-function drawParticles(){
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    ctx.fillStyle="white";
-    particles.forEach(p=>{
-        ctx.beginPath();
-        ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-        ctx.fill();
-        p.y+=p.d;
-        if(p.y>canvas.height){p.y=0;p.x=Math.random()*canvas.width;}
-    });
-    requestAnimationFrame(drawParticles);
-}
-drawParticles();
 </script>
+
 </body>
 </html>
