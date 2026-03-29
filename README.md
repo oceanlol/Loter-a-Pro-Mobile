@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -35,27 +35,48 @@ body {
 
 .card-box {
     width: 100%;
-    min-height: 250px;
+    min-height: 300px;
+    perspective: 1000px;
+    margin-bottom: 15px;
+}
+
+.card-inner {
+    width: 100%;
+    height: 100%;
     border-radius: 20px;
-    backdrop-filter: blur(15px);
-    background: rgba(255,255,255,0.05);
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.8s;
+}
+
+.card-front, .card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 20px;
+    backface-visibility: hidden;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 15px;
-}
-
-.card-box img {
-    width: 80%;
-    max-height: 150px;
-    object-fit: contain;
-    margin-bottom: 10px;
-    border-radius: 15px;
     background: rgba(255,255,255,0.05);
 }
 
-#cardName { font-size: 28px; font-weight: bold; margin-bottom: 5px; }
+.card-front img {
+    width: 90%;
+    max-height: 200px;
+    object-fit: contain;
+    border-radius: 15px;
+}
+
+.card-back {
+    background: rgba(255,255,255,0.08);
+    transform: rotateY(180deg);
+    font-size: 28px;
+    font-weight: bold;
+}
+
+#cardName { font-size: 28px; font-weight: bold; margin-top: 10px; }
 #countdown { font-size: 40px; margin-bottom: 5px; }
 
 button {
@@ -89,7 +110,12 @@ button {
 <div class="container">
 
 <div class="card-box">
-    <img id="cardImage" src="https://via.placeholder.com/150?text=No+Image" alt="Card Image">
+    <div class="card-inner" id="cardInner">
+        <div class="card-front">
+            <img id="cardImage" src="https://via.placeholder.com/150?text=No+Image" alt="Card Image">
+        </div>
+        <div class="card-back">Lotería</div>
+    </div>
     <div id="cardName">---</div>
     <div id="countdown">0</div>
 </div>
@@ -170,7 +196,7 @@ const cardImages = {
 "El Tambor":"https://i.imgur.com/vP4xdAG.jpeg",
 "El Camaron":"https://i.imgur.com/51Y9ucg.jpeg",
 "Las Jaras":"https://i.imgur.com/6j4KzKP.jpeg",
-"El Musico":"https://i.imgur.com/6j4KzKP.jpeg",
+"El Musico":"https://i.imgur.com/Dkp9VKW.jpeg",
 "La Arana":"https://i.imgur.com/b7iKPIi.jpeg",
 "El Soldado":"https://i.imgur.com/Q8G5bt3.jpeg",
 "La Estrella":"https://i.imgur.com/U5RrzEG.jpeg",
@@ -235,17 +261,26 @@ function addToHistory(card) {
     history.prepend(item);
 }
 
-// DISPLAY CARD
+// DISPLAY CARD WITH REAL FLIP
 function displayCard(card) {
-    document.getElementById("cardName").innerText = card;
+    const inner = document.getElementById("cardInner");
     const img = document.getElementById("cardImage");
-    img.src = cardImages[card] || "https://via.placeholder.com/150?text=No+Image";
-    img.alt = card;
-    img.onerror = () => {
-        img.src = "https://via.placeholder.com/150?text=No+Image";
-    };
-    speak(card);
-    addToHistory(card);
+
+    // Start flip
+    inner.style.transform = "rotateY(180deg)";
+
+    setTimeout(() => {
+        // Update image mid-flip
+        img.src = cardImages[card] || "https://via.placeholder.com/150?text=No+Image";
+        img.alt = card;
+        document.getElementById("cardName").innerText = card;
+        speak(card);
+        addToHistory(card);
+
+        // Flip back
+        inner.style.transform = "rotateY(0deg)";
+    }, 400); // flip duration / 2
+
     startCountdown();
 }
 
@@ -303,7 +338,10 @@ function resetGame() {
     document.getElementById("cardName").innerText = "---";
     document.getElementById("countdown").innerText = "0";
     document.getElementById("history").innerHTML = "";
-    document.getElementById("cardImage").src = "https://via.placeholder.com/150?text=No+Image";
+    const img = document.getElementById("cardImage");
+    img.src = "https://via.placeholder.com/150?text=No+Image";
+    const inner = document.getElementById("cardInner");
+    inner.style.transform = "rotateY(0deg)";
     calledSet.clear();
 }
 
