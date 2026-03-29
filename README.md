@@ -155,16 +155,6 @@ button:active {
 document.body.addEventListener("click", ()=>speechSynthesis.resume());
 
 // FULL IMAGE SET
-const base = "https://loteriamx.com/images/cards/";
-const names = [
-"gallo","diablo","dama","catrin","paraguas","sirena","escalera","botella","barril","arbol",
-"melon","valiente","gorrito","muerte","pera","bandera","bandolon","violoncello","garza","pajaro",
-"mano","bota","luna","cotorro","borracho","negrito","corazon","sandia","tambor","camaron",
-"jaras","musico","arana","soldado","estrella","cazo","mundo","apache","nopal","alacran",
-"rosa","calavera","campana","cantarito","venado","sol","corona","chalupa","pino","pescado",
-"palma","maceta","arpa","rana"
-];
-
 const deck = [
 "El Gallo","El Diablo","La Dama","El Catrin","El Paraguas","La Sirena","La Escalera","La Botella","El Barril","El Arbol",
 "El Melon","El Valiente","El Gorrito","La Muerte","La Pera","La Bandera","El Bandolon","El Violoncello","La Garza","El Pajaro",
@@ -174,13 +164,64 @@ const deck = [
 "La Palma","La Maceta","El Arpa","La Rana"
 ];
 
-// map images
-let cardImages = {};
-deck.forEach((card,i)=>{
-    cardImages[card] = base + names[i] + ".jpg";
-});
+const cardImages = {
+"El Gallo":"https://i.imgur.com/z1nEFgO.jpeg",
+"El Diablo":"https://i.imgur.com/rxWv6vK.jpeg",
+"La Dama":"https://i.imgur.com/XgDqiNl.jpeg",
+"El Catrin":"https://i.imgur.com/PpondFd.jpeg",
+"El Paraguas":"https://i.imgur.com/uRI9iNC.jpeg",
+"La Sirena":"https://i.imgur.com/8YJMkhu.jpeg",
+"La Escalera":"https://i.imgur.com/2uBrCdL.jpeg",
+"La Botella":"https://i.imgur.com/HyX7qfV.jpeg",
+"El Barril":"https://i.imgur.com/r3b4IY2.jpeg",
+"El Arbol":"https://i.imgur.com/3MLbB7C.jpeg",
+"El Melon":"https://i.imgur.com/frSRTj6.jpeg",
+"El Valiente":"https://i.imgur.com/WxwS83V.jpeg",
+"El Gorrito":"https://i.imgur.com/4CqxyVO.jpeg",
+"La Muerte":"https://i.imgur.com/izrshro.jpeg",
+"La Pera":"https://i.imgur.com/3bUxEox.jpeg",
+"La Bandera":"https://i.imgur.com/pQP8NNO.jpeg",
+"El Bandolon":"https://i.imgur.com/dxitjQN.jpeg",
+"El Violoncello":"https://i.imgur.com/ogjNjnA.jpeg",
+"La Garza":"https://i.imgur.com/vMKaIdv.jpeg",
+"El Pajaro":"https://i.imgur.com/uEiQBFO.jpeg",
+"La Mano":"https://i.imgur.com/VkKLlqr.jpeg",
+"La Bota":"https://i.imgur.com/NDBe5OH.jpeg",
+"La Luna":"https://i.imgur.com/e1fPz9R.jpeg",
+"El Cotorro":"https://i.imgur.com/gFq9O8O.jpeg",
+"El Borracho":"https://i.imgur.com/Y2TjiRl.jpeg",
+"El Negrito":"https://i.imgur.com/dCe9v1p.jpeg",
+"El Corazon":"https://i.imgur.com/q41EefM.jpeg",
+"La Sandia":"https://i.imgur.com/NDqOGAp.jpeg",
+"El Tambor":"https://i.imgur.com/vP4xdAG.jpeg",
+"El Camaron":"https://i.imgur.com/51Y9ucg.jpeg",
+"Las Jaras":"https://i.imgur.com/6j4KzKP.jpeg",
+"El Musico":"https://i.imgur.com/Dkp9VKW.jpeg",
+"La Arana":"https://i.imgur.com/b7iKPIi.jpeg",
+"El Soldado":"https://i.imgur.com/Q8G5bt3.jpeg",
+"La Estrella":"https://i.imgur.com/U5RrzEG.jpeg",
+"El Cazo":"https://i.imgur.com/aGCKp5q.jpeg",
+"El Mundo":"https://i.imgur.com/tPYzCG9.jpeg",
+"El Apache":"https://i.imgur.com/UB3jKbQ.jpeg",
+"El Nopal":"https://i.imgur.com/ZJvkH3F.jpeg",
+"El Alacran":"https://i.imgur.com/AVh1tlK.jpeg",
+"La Rosa":"https://i.imgur.com/Z35ozqa.jpeg",
+"La Calavera":"https://i.imgur.com/gsQI9gG.jpeg",
+"La Campana":"https://i.imgur.com/54E5hs5.jpeg",
+"El Cantarito":"https://i.imgur.com/92ajsYs.jpeg",
+"El Venado":"https://i.imgur.com/Ty0a9fh.jpeg",
+"El Sol":"https://i.imgur.com/0pWa6PF.jpeg",
+"La Corona":"https://i.imgur.com/vKPQeWp.jpeg",
+"La Chalupa":"https://i.imgur.com/WRjLeQ9.jpeg",
+"El Pino":"https://i.imgur.com/3g3mZ1j.jpeg",
+"El Pescado":"https://i.imgur.com/bjpjmtT.jpeg",
+"La Palma":"https://i.imgur.com/tIXKSL6.jpeg",
+"La Maceta":"https://i.imgur.com/XIXd4vn.jpeg",
+"El Arpa":"https://i.imgur.com/kCE4eI4.jpeg",
+"La Rana":"https://i.imgur.com/FrLUeDC.jpeg"
+};
 
-// CALLER MODE (UNCHANGED)
+// CALLER MODE
 let callerList = ["El Musico","El Catrin","La Dama","El Negrito"];
 let injectQueue = [];
 let blendMode = false;
@@ -194,17 +235,13 @@ let isSpeaking = false;
 let calledSet = new Set();
 
 // PRELOAD IMAGES
-Object.values(cardImages).forEach(src=>{
-    const img = new Image();
-    img.src = src;
-});
+Object.values(cardImages).forEach(src=>{ const img=new Image(); img.src=src; });
 
 // SPEAK
 function speak(text, callback){
     let msg = new SpeechSynthesisUtterance(text);
     let v = speechSynthesis.getVoices().find(v=>v.lang.includes("es")) || speechSynthesis.getVoices()[0];
     if(v) msg.voice = v;
-
     msg.onend = ()=>{isSpeaking=false; if(callback)callback();}
     isSpeaking=true;
     speechSynthesis.cancel();
@@ -212,12 +249,13 @@ function speak(text, callback){
 }
 
 // SETUP
-function setup(){
-    randomPool=[...deck].sort(()=>Math.random()-0.5);
-}
+function setup(){ randomPool=[...deck].sort(()=>Math.random()-0.5); }
 
-// DISPLAY
+// DISPLAY CARD
 function displayCard(card){
+    if(calledSet.has(card)) return; // NO DUPES
+    calledSet.add(card);
+
     const inner=document.getElementById("cardInner");
     const img=document.getElementById("cardImage");
 
@@ -237,23 +275,23 @@ function displayCard(card){
     startCountdown();
 }
 
-// NEXT
+// NEXT CARD
 function nextCard(){
-    if(isSpeaking)return;
+    if(isSpeaking) return;
 
     let card;
     if(blendMode && injectQueue.length>0 && callCount%2===1){
-        card=injectQueue.shift();
+        card = injectQueue.shift();
     } else {
-        if(randomPool.length===0)return;
-        card=randomPool.shift();
+        if(randomPool.length===0) return;
+        card = randomPool.shift();
     }
 
     displayCard(card);
     callCount++;
 }
 
-// START
+// START GAME
 function startGame(){
     speechSynthesis.resume();
     stopAuto();
@@ -274,8 +312,6 @@ function activateCaller(){
 
 // HISTORY
 function addToHistory(card){
-    if(calledSet.has(card))return;
-    calledSet.add(card);
     let d=document.createElement("div");
     d.innerText=card;
     history.prepend(d);
@@ -298,9 +334,7 @@ function resetGame(){
 }
 
 // SPEED
-function getSpeed(){
-    return parseInt(document.getElementById("speed").value);
-}
+function getSpeed(){ return parseInt(document.getElementById("speed").value); }
 
 // TIMER
 function startCountdown(){
@@ -310,39 +344,27 @@ function startCountdown(){
     countdownInterval=setInterval(()=>{
         t--;
         countdown.innerText=t;
-        if(t<=0)clearInterval(countdownInterval);
+        if(t<=0) clearInterval(countdownInterval);
     },1000);
 }
 
 // TAP + SWIPE
 let startX=0;
-document.getElementById("tapZone").addEventListener("touchstart",e=>{
-    startX=e.touches[0].clientX;
-});
+document.getElementById("tapZone").addEventListener("touchstart",e=>{ startX=e.touches[0].clientX; });
 document.getElementById("tapZone").addEventListener("touchend",e=>{
     let endX=e.changedTouches[0].clientX;
-    if(Math.abs(endX-startX)>50){
-        nextCard();
-    } else {
-        nextCard();
-    }
+    nextCard();
 });
 
 // PARTICLES
 const canvas=document.getElementById("particles");
 const ctx=canvas.getContext("2d");
-
-function resizeCanvas(){
-    canvas.width=window.innerWidth;
-    canvas.height=window.innerHeight;
-}
+function resizeCanvas(){ canvas.width=window.innerWidth; canvas.height=window.innerHeight; }
 window.addEventListener("resize",resizeCanvas);
 resizeCanvas();
 
 let particles=[];
-for(let i=0;i<70;i++){
-    particles.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,r:Math.random()*2,d:Math.random()*1});
-}
+for(let i=0;i<70;i++){ particles.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,r:Math.random()*2,d:Math.random()*1}); }
 
 function drawParticles(){
     ctx.clearRect(0,0,canvas.width,canvas.height);
@@ -352,7 +374,7 @@ function drawParticles(){
         ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
         ctx.fill();
         p.y+=p.d;
-        if(p.y>canvas.height){p.y=0;p.x=Math.random()*canvas.width;}
+        if(p.y>canvas.height){ p.y=0; p.x=Math.random()*canvas.width; }
     });
     requestAnimationFrame(drawParticles);
 }
