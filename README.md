@@ -14,14 +14,12 @@ body {
     text-align: center;
 }
 
-/* HEADER */
 .header {
     padding: 12px;
     font-size: 20px;
     font-weight: bold;
 }
 
-/* CARD */
 .card-display {
     margin: 15px auto;
     width: 85%;
@@ -43,7 +41,6 @@ body {
     font-weight: bold;
 }
 
-/* BUTTONS */
 .play-btn {
     width: 65px;
     height: 65px;
@@ -63,13 +60,11 @@ body {
     color: white;
 }
 
-/* INPUT */
 input {
     width: 50px;
     text-align: center;
 }
 
-/* PICKER (BOTTOM SHEET) */
 #picker {
     position: fixed;
     bottom: 0;
@@ -81,7 +76,6 @@ input {
     transition: transform 0.25s ease;
 }
 
-/* HANDLE */
 .handle {
     width: 50px;
     height: 5px;
@@ -90,7 +84,6 @@ input {
     margin: 10px auto;
 }
 
-/* GRID */
 #grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -133,7 +126,6 @@ input {
     Speed: <input id="speed" value="4">s
 </div>
 
-<!-- PICKER -->
 <div id="picker">
     <div class="handle"></div>
     <div id="grid"></div>
@@ -160,7 +152,7 @@ let autoInterval = null;
 let countdownInterval = null;
 let timeLeft = 0;
 
-// BUILD GRID (FIXED CLICK)
+// BUILD GRID
 const grid = document.getElementById("grid");
 
 deck.forEach(card => {
@@ -181,7 +173,7 @@ deck.forEach(card => {
     grid.appendChild(div);
 });
 
-// PICKER CONTROL
+// PICKER
 const picker = document.getElementById("picker");
 
 function openPicker() {
@@ -192,7 +184,7 @@ function closePicker() {
     picker.style.transform = "translateY(100%)";
 }
 
-// DRAG (PHONE FIXED)
+// DRAG
 let startY = 0;
 
 picker.addEventListener("touchstart", e => {
@@ -201,30 +193,42 @@ picker.addEventListener("touchstart", e => {
 
 picker.addEventListener("touchend", e => {
     let endY = e.changedTouches[0].clientY;
-    let diff = endY - startY;
-
-    if (diff > 80) closePicker();
+    if (endY - startY > 80) closePicker();
 });
 
-// GAME
+// SETUP (FIXED)
 function setup() {
-    randomPool = [...deck].sort(() => Math.random() - 0.5);
+    if (selectedSet.size > 0) {
+        randomPool = [...selectedSet];
+    } else {
+        randomPool = [...deck];
+    }
+
+    randomPool = randomPool.sort(() => Math.random() - 0.5);
 }
 
+// SPEAK
 function speak(text) {
     speechSynthesis.cancel();
-    let msg = new SpeechSynthesisUtterance(text);
+
+    const msg = new SpeechSynthesisUtterance(text);
     msg.lang = "es-MX";
+
+    const voices = speechSynthesis.getVoices();
+    const spanish = voices.find(v => v.lang.includes("es"));
+    if (spanish) msg.voice = spanish;
+
     speechSynthesis.speak(msg);
 }
 
+// NEXT CARD
 function nextCard() {
     if (randomPool.length === 0) setup();
 
     const card = randomPool.shift();
     document.getElementById("cardName").innerText = card;
-    speak(card);
 
+    speak(card);
     startCountdown();
 }
 
@@ -232,36 +236,47 @@ function nextCard() {
 function startCountdown() {
     clearInterval(countdownInterval);
 
-    timeLeft = parseInt(document.getElementById("speed").value) || 4;
-
-    document.getElementById("countdown").innerText = timeLeft;
+    timeLeft = getSpeed();
+    updateCountdown();
 
     countdownInterval = setInterval(() => {
         timeLeft--;
-        document.getElementById("countdown").innerText = timeLeft;
-
+        updateCountdown();
         if (timeLeft <= 0) clearInterval(countdownInterval);
     }, 1000);
 }
 
-// AUTO
-function startAuto() {
-    if (autoInterval) return;
-
-    setup();
-    nextCard();
-
-    let speed = parseInt(document.getElementById("speed").value) || 4;
-
-    autoInterval = setInterval(nextCard, speed * 1000);
+function updateCountdown() {
+    document.getElementById("countdown").innerText = timeLeft;
 }
 
+function getSpeed() {
+    return parseInt(document.getElementById("speed").value) || 4;
+}
+
+// START
+function startAuto() {
+    speechSynthesis.resume();
+
+    stopAuto();
+    setup();
+    closePicker();
+
+    nextCard();
+
+    autoInterval = setInterval(() => {
+        nextCard();
+    }, getSpeed() * 1000);
+}
+
+// STOP
 function stopAuto() {
     clearInterval(autoInterval);
     clearInterval(countdownInterval);
     autoInterval = null;
 }
 
+// RESET
 function resetGame() {
     stopAuto();
     document.getElementById("cardName").innerText = "---";
