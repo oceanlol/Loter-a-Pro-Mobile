@@ -31,7 +31,7 @@
 
   .app-grid {
     display: grid;
-    grid-template-columns: 240px 1.5fr 320px; /* Precise widths for better balance */
+    grid-template-columns: 200px 1.5fr 350px; /* Adjusted widths for more history breathing room */
     width: 100%;
     height: 100%;
     align-items: center;
@@ -53,27 +53,32 @@
 
   .history-wall {
     display: grid;
-    grid-template-columns: repeat(2, 1fr); /* 2-column grid for the wall */
-    gap: 12px;
+    grid-template-columns: repeat(3, 1fr); /* 3 columns to make them smaller and less clumped */
+    gap: 8px;
     overflow-y: auto;
     flex-grow: 1;
     padding: 10px 5px;
     scrollbar-width: none;
   }
 
-  /* Better Side Card Styling */
+  /* Smaller History Cards */
   .side-card {
     width: 100%;
     aspect-ratio: 2/3;
     background: white;
-    border-radius: 8px;
-    border: 2px solid white;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    border-radius: 6px;
+    border: 1.5px solid white;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
     overflow: hidden;
     transition: transform 0.2s;
   }
   .side-card img { width: 100%; height: 100%; object-fit: contain; }
-  .side-card:first-child { border-color: var(--accent); box-shadow: 0 0 15px var(--accent); }
+  
+  /* Highlight most recent in history */
+  #fullHistory .side-card:first-child { 
+    border-color: var(--accent); 
+    box-shadow: 0 0 10px var(--accent); 
+  }
 
   /* Center Stage */
   .center-stage {
@@ -162,7 +167,7 @@
 <div class="app-grid">
   <div class="side-panel">
     <div class="title-header">Previous</div>
-    <div id="prevList" class="history-wall" style="grid-template-columns: 1fr;"></div>
+    <div id="prevList" class="history-wall" style="grid-template-columns: 1fr; gap: 15px;"></div>
   </div>
 
   <div class="center-stage">
@@ -183,7 +188,7 @@
       <button class="btn-start" id="startBtn" onclick="startGame()">▶ START GAME</button>
       <button onclick="activateCaller()">🎭 CALLER MODE</button>
       <button class="btn-win" onclick="triggerWinner()">🏆 LOTERÍA!</button>
-      <button onclick="stopGame()">⏸ PAUSE</button>
+      <button onclick="stopGame()">⏸ PAUSA</button>
       <button onclick="resetGame()">🔄 RESET</button>
       <button onclick="shuffleDeck()" style="grid-column: span 2;">🔀 SHUFFLE DECK</button>
       <div style="grid-column: span 2; padding: 10px 0; text-align: center;">
