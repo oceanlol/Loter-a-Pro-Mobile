@@ -180,7 +180,13 @@ const names = [
 const reserved = ["El Musico", "El Catrin", "La Dama", "El Negrito"];
 
 const cardImgs = {};
-names.forEach((n, i) => cardImgs[n] = `https://raw.githubusercontent.com/oceanlol/winning/main/card%20${i+1}.jpg`);
+names.forEach((n, i) => {
+  if (n === "El Catrin") {
+    cardImgs[n] = `https://raw.githubusercontent.com/oceanlol/Loter-a-Pro-Mobile/main/CARD%204.jpg`;
+  } else {
+    cardImgs[n] = `https://raw.githubusercontent.com/oceanlol/winning/main/card%20${i+1}.jpg`;
+  }
+});
 
 let pool = [];
 let rigQueue = [];
@@ -246,7 +252,6 @@ function updateSides(lastCard) {
 function startGame() {
   stopGame();
   if (history.length === 0) {
-    // PREVENT NORMAL CALLS: Remove reserved cards from the pool entirely
     pool = names.filter(name => !reserved.includes(name)).sort(() => Math.random() - 0.5);
   }
   talk("Corre y se va");
@@ -271,7 +276,6 @@ function resetGame() {
 }
 
 function activateCaller() {
-  // ONLY way to call these 4 cards is through this button
   if (rigQueue.length === 0 && !history.some(r => reserved.includes(r))) {
     rigQueue = [...reserved];
   }
