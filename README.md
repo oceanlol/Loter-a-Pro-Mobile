@@ -88,11 +88,12 @@
     border-radius: 20px;
     border: 8px solid white;
     box-shadow: 0 30px 60px rgba(0,0,0,0.8);
-    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    /* Faster transition for zero lag feel */
+    transition: transform 0.3s ease-out, opacity 0.3s ease-out;
   }
   .card-wrap img { width: 100%; height: 100%; object-fit: contain; }
 
-  .slide-out { opacity: 0; transform: translateY(40px) scale(0.9); }
+  .slide-out { opacity: 0; transform: translateY(20px) scale(0.95); }
   .slide-in { opacity: 1; transform: translateY(0) scale(1); }
   
   .shuffling { animation: shuffleEffect 0.1s infinite; }
@@ -159,7 +160,7 @@
       <button class="btn-start" id="startBtn" onclick="startGame()">▶ START GAME</button>
       <button onclick="activateCaller()">🎭 CALLER MODE</button>
       <button class="btn-win" onclick="triggerWinner()">🏆 LOTERÍA!</button>
-      <button onclick="stopGame()">⏸ PAUSE</button>
+      <button onclick="stopGame()">⏸ PAUSA</button>
       <button onclick="resetGame()">🔄 RESET</button>
       <button onclick="shuffleDeck()" style="grid-column: span 2;">🔀 SHUFFLE DECK</button>
       <div style="grid-column: span 2; padding: 10px 0; text-align: center;">
@@ -191,6 +192,10 @@ const cardImgs = {};
 names.forEach((n, i) => {
   if (n === "El Catrin") {
     cardImgs[n] = `https://raw.githubusercontent.com/oceanlol/Loter-a-Pro-Mobile/main/CARD%204.jpg`;
+  } else if (n === "El Paraguas") {
+    cardImgs[n] = `https://raw.githubusercontent.com/oceanlol/Loter-a-Pro-Mobile/main/CARD%205.jpg`;
+  } else if (n === "Las Jaras") {
+    cardImgs[n] = `https://raw.githubusercontent.com/oceanlol/Loter-a-Pro-Mobile/main/card%20%2031.jpg`;
   } else {
     cardImgs[n] = `https://raw.githubusercontent.com/oceanlol/winning/main/card%20${i+1}.jpg`;
   }
@@ -233,7 +238,13 @@ function renderMain(name) {
   const img = document.getElementById('mainImg');
   const label = document.getElementById('mainLabel');
   
+  // Instant visual feedback for no-lag experience
   wrap.classList.add('slide-out');
+  
+  // Pre-load image
+  const tempImg = new Image();
+  tempImg.src = cardImgs[name];
+  
   setTimeout(() => {
     img.src = cardImgs[name];
     label.innerText = name;
@@ -241,7 +252,7 @@ function renderMain(name) {
     wrap.classList.remove('slide-out');
     wrap.classList.add('slide-in');
     talk(name);
-  }, 400);
+  }, 150); // Reduced delay for snappier feel
 }
 
 function updateSides(lastCard) {
@@ -271,7 +282,7 @@ function shuffleDeck() {
     document.getElementById('fullHistory').innerHTML = '';
     document.getElementById('mainLabel').innerText = "READY";
     document.getElementById('deckCount').innerText = "50 REMAINING";
-  }, 1000);
+  }, 800);
 }
 
 function startGame() {
@@ -283,7 +294,7 @@ function startGame() {
   setTimeout(() => {
     next();
     gameLoop = setInterval(next, document.getElementById('speed').value * 1000);
-  }, 1000);
+  }, 800);
 }
 
 function stopGame() { clearInterval(gameLoop); }
