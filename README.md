@@ -94,6 +94,14 @@
 
   .slide-out { opacity: 0; transform: translateY(40px) scale(0.9); }
   .slide-in { opacity: 1; transform: translateY(0) scale(1); }
+  
+  /* Shuffle Animation */
+  .shuffling { animation: shuffleEffect 0.1s infinite; }
+  @keyframes shuffleEffect {
+    0% { transform: translate(2px, 2px); }
+    50% { transform: translate(-2px, -2px); }
+    100% { transform: translate(0, 0); }
+  }
 
   .title { font-size: 0.8rem; letter-spacing: 3px; color: var(--accent); margin-bottom: 5px; text-transform: uppercase; }
   .label-text { font-size: 2.2rem; font-weight: 900; margin: 5px 0; }
@@ -149,11 +157,12 @@
     <div class="deck-count" id="deckCount">54 RESTANTES</div>
 
     <div class="controls">
-      <button class="btn-start" onclick="startGame()">▶ INICIAR JUEGO</button>
+      <button class="btn-start" id="startBtn" onclick="startGame()">▶ INICIAR JUEGO</button>
       <button onclick="activateCaller()">🎭 CALLER MODE</button>
       <button class="btn-win" onclick="triggerWinner()">🏆 LOTERÍA!</button>
       <button onclick="stopGame()">⏸ PAUSA</button>
       <button onclick="resetGame()">🔄 REINICIAR</button>
+      <button onclick="shuffleDeck()" style="grid-column: span 2;">🔀 MEZCLAR MAZO</button>
       <div style="grid-column: span 2; padding: 10px 0;">
         <input type="range" id="speed" min="2" max="10" value="4" style="width:100%; accent-color: white;">
       </div>
@@ -176,7 +185,6 @@ const names = [
   "La Palma","La Maceta","El Arpa","La Rana"
 ];
 
-// The Locked Cards
 const reserved = ["El Musico", "El Catrin", "La Dama", "El Negrito"];
 
 const cardImgs = {};
@@ -249,12 +257,30 @@ function updateSides(lastCard) {
   right.prepend(cardDiv2);
 }
 
+function shuffleDeck() {
+  stopGame();
+  const wrap = document.getElementById('mainCard');
+  wrap.classList.remove('slide-out');
+  wrap.classList.add('shuffling');
+  talk("Barajeando");
+  
+  setTimeout(() => {
+    wrap.classList.remove('shuffling');
+    pool = names.filter(name => !reserved.includes(name)).sort(() => Math.random() - 0.5);
+    history = [];
+    document.getElementById('prevList').innerHTML = '';
+    document.getElementById('fullHistory').innerHTML = '';
+    document.getElementById('mainLabel').innerText = "LISTOS";
+    document.getElementById('deckCount').innerText = "50 RESTANTES";
+  }, 1000);
+}
+
 function startGame() {
   stopGame();
-  if (history.length === 0) {
+  if (history.length === 0 && pool.length === 0) {
     pool = names.filter(name => !reserved.includes(name)).sort(() => Math.random() - 0.5);
   }
-  talk("Corre y se va");
+  talk("¡Corre y se va!");
   setTimeout(() => {
     next();
     gameLoop = setInterval(next, document.getElementById('speed').value * 1000);
@@ -283,7 +309,8 @@ function activateCaller() {
 
 function triggerWinner() {
   stopGame();
-  talk("¡Lotería!");
+  talk("¡Lotería! ¡Buenas!");
+  document.getElementById('mainLabel').innerText = "¡LOTERÍA!";
 }
 
 window.speechSynthesis.onvoiceschanged = () => { speechSynthesis.getVoices(); };
