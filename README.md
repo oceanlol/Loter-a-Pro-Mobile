@@ -233,10 +233,33 @@ let rigQueue = [];
 let history = [];
 let gameLoop = null;
 
+// New logic to find the best Spanish voice on iPadOS
+function getBestSpanishVoice() {
+  const voices = speechSynthesis.getVoices();
+  
+  // 1. Look for premium/enhanced Mexican Spanish voices (best for Lotería!)
+  let voice = voices.find(v => v.lang === 'es-MX' && (v.name.includes('Premium') || v.name.includes('enhanced')));
+  
+  // 2. Fallback to any Mexican Spanish voice
+  if (!voice) voice = voices.find(v => v.lang === 'es-MX');
+  
+  // 3. Fallback to any Spanish voice (Spain, Argentina, etc.)
+  if (!voice) voice = voices.find(v => v.lang.startsWith('es'));
+  
+  return voice;
+}
+
 function talk(t) {
   speechSynthesis.cancel();
   const m = new SpeechSynthesisUtterance(t);
-  m.lang = 'es-MX';
+  
+  const bestVoice = getBestSpanishVoice();
+  if (bestVoice) {
+    m.voice = bestVoice;
+  } else {
+    m.lang = 'es-MX'; // Fallback if voices haven't loaded yet
+  }
+  
   m.rate = 0.95;
   speechSynthesis.speak(m);
 }
@@ -343,7 +366,10 @@ function triggerWinner() {
   document.getElementById('mainLabel').innerText = "¡LOTERÍA!";
 }
 
-window.speechSynthesis.onvoiceschanged = () => { speechSynthesis.getVoices(); };
+// Fixed onvoiceschanged to ensure iPad loads all available high-quality voices
+if (typeof speechSynthesis !== 'undefined' && speechSynthesis.onvoiceschanged !== undefined) {
+  speechSynthesis.onvoiceschanged = () => { speechSynthesis.getVoices(); };
+}
 </script>
 </body>
 </html>
