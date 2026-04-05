@@ -1,385 +1,292 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Lotería Pro MAX</title>
 
 <style>
-body {
-    margin: 0;
-    font-family: 'Segoe UI', Arial;
-    background: radial-gradient(circle at top, #111, #000);
+  :root {
+    --bg: #0a0a0c;
+    --panel: #1a1a1f;
+    --accent: #00f2fe;
+    --card-white: #ffffff;
+    --btn-text: #ffffff;
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    margin: 0; padding: 0;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
     color: white;
-    overflow-x: hidden;
+    display: flex;
+    justify-content: center;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 400px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding-top: 30px;
-}
+    padding: 20px;
+    justify-content: space-between;
+  }
 
-/* Glow particles */
-#particles {
-    position: fixed;
+  .stats {
     width: 100%;
-    height: 100%;
-    z-index: 0;
-}
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: rgba(255,255,255,0.3);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+  }
 
-.container {
+  /* Card Stage */
+  .stage {
     position: relative;
-    z-index: 1;
-    width: 90%;
-    max-width: 400px;
-    text-align: center;
-}
-
-/* CARD */
-.card-box {
-    width: 100%;
-    min-height: 260px;
+    width: 260px;
+    height: 380px;
     perspective: 1000px;
-}
+    margin: 10px 0;
+  }
 
-.card-inner {
+  .card-wrap {
     width: 100%;
     height: 100%;
-    border-radius: 20px;
-    position: relative;
-    transform-style: preserve-3d;
-    transition: transform 0.6s;
-    box-shadow: 0 0 25px rgba(255,255,255,0.15);
-}
-
-.card-front, .card-back {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    border-radius: 20px;
-    backface-visibility: hidden;
+    background: var(--card-white);
+    border-radius: 22px;
+    border: 8px solid white;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.7);
     display: flex;
     justify-content: center;
     align-items: center;
-    backdrop-filter: blur(10px);
-}
+    transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+  }
 
-.card-front img {
-    width: 90%;
-    max-height: 190px;
-    object-fit: contain;
-    border-radius: 15px;
-}
-
-.card-back {
-    background: rgba(255,255,255,0.1);
-    transform: rotateY(180deg);
-    font-size: 28px;
-}
-
-#cardName {
-    font-size: 26px;
-    margin-top: 10px;
-}
-
-#countdown {
-    font-size: 34px;
-}
-
-/* BUTTONS */
-button {
-    background: rgba(255,255,255,0.08);
-    border: none;
-    color: white;
-    padding: 18px;
-    margin: 6px 0;
-    border-radius: 14px;
+  .card-wrap img {
     width: 100%;
-    font-size: 18px;
-}
+    height: 100%;
+    object-fit: contain;
+  }
 
-button:active {
-    transform: scale(0.95);
-}
+  /* Animation States */
+  .slide-out { opacity: 0; transform: translateX(120px) rotate(8deg) scale(0.9); }
+  .slide-in { opacity: 1; transform: translateX(0) rotate(0deg) scale(1); }
 
-/* HISTORY */
-.history {
+  #cardName {
+    font-size: 2.2rem;
+    font-weight: 900;
+    margin: 0;
+    text-align: center;
+    background: linear-gradient(180deg, #fff 0%, #bbb 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    height: 45px;
+  }
+
+  /* History Dock */
+  .history-bar {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    width: 100%;
+    padding: 10px 0;
+    scrollbar-width: none;
+  }
+  .history-bar::-webkit-scrollbar { display: none; }
+
+  .hist-card {
+    width: 45px; height: 65px;
+    background: white;
+    border-radius: 6px;
+    flex-shrink: 0;
+    border: 2px solid white;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+  }
+  .hist-card img { width: 100%; height: 100%; object-fit: contain; }
+
+  /* Controls */
+  .btn-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    width: 100%;
+  }
+
+  button {
+    background: var(--panel);
+    border: 1px solid rgba(255,255,255,0.05);
+    color: var(--btn-text);
+    padding: 16px;
+    border-radius: 16px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+
+  button:active { transform: scale(0.95); background: #2a2a30; }
+
+  .btn-start {
+    grid-column: span 2;
+    background: white;
+    color: black;
+    font-size: 1.1rem;
+    border: none;
+  }
+
+  input[type=range] {
+    width: 100%;
+    accent-color: #fff;
     margin-top: 10px;
-    max-height: 150px;
-    overflow-y: auto;
-    font-size: 14px;
-    background: rgba(255,255,255,0.05);
-    border-radius: 10px;
-    padding: 8px;
-}
-
-/* ANIMATION */
-@keyframes bounce {
-    0%{transform:translateY(0)}
-    30%{transform:translateY(-10px)}
-    100%{transform:translateY(0)}
-}
-.bounce { animation: bounce 0.4s; }
+  }
 </style>
 </head>
-
 <body>
 
-<canvas id="particles"></canvas>
-
 <div class="container">
+  <div class="stats">
+    <span>LOTERÍA PRO MAX</span>
+    <span id="deckLeft">54 CARTAS</span>
+  </div>
 
-<div class="card-box" id="tapZone">
-    <div class="card-inner" id="cardInner">
-        <div class="card-front">
-            <img id="cardImage" src="">
-        </div>
-        <div class="card-back">Lotería</div>
+  <div class="stage" onclick="manualNext()">
+    <div id="cardEl" class="card-wrap slide-out">
+      <img id="cardImg" src="">
     </div>
-    <div id="cardName">Tap Start</div>
-    <div id="countdown">0</div>
-</div>
+  </div>
 
-<button onclick="startGame()">▶ Start</button>
-<button onclick="activateCaller()">Caller Mode</button>
-<button onclick="stopAuto()">Stop</button>
-<button onclick="resetGame()">Reset</button>
+  <h1 id="cardName">LISTOS</h1>
 
-<input type="range" id="speed" min="1" max="10" value="4">
+  <div class="history-bar" id="history"></div>
 
-<div class="history" id="history"></div>
+  <div style="width:100%; text-align:center;">
+    <span style="font-size:0.7rem; opacity:0.5;">VELOCIDAD: <span id="speedVal">4</span>s</span>
+    <input type="range" id="speed" min="2" max="10" value="4" oninput="document.getElementById('speedVal').innerText=this.value">
+  </div>
 
+  <div class="btn-grid">
+    <button class="btn-start" onclick="startGame()">▶ INICIAR JUEGO</button>
+    <button onclick="activateCaller()">🎭 CALLER MODE</button>
+    <button onclick="stopGame()">⏸ PAUSA</button>
+    <button onclick="resetGame()" style="grid-column: span 2;">🔄 REINICIAR</button>
+  </div>
 </div>
 
 <script>
-// AUDIO UNLOCK
-document.body.addEventListener("click", ()=>speechSynthesis.resume());
-
-// FULL IMAGE SET
-const deck = [
-"El Gallo","El Diablo","La Dama","El Catrin","El Paraguas","La Sirena","La Escalera","La Botella","El Barril","El Arbol",
-"El Melon","El Valiente","El Gorrito","La Muerte","La Pera","La Bandera","El Bandolon","El Violoncello","La Garza","El Pajaro",
-"La Mano","La Bota","La Luna","El Cotorro","El Borracho","El Negrito","El Corazon","La Sandia","El Tambor","El Camaron",
-"Las Jaras","El Musico","La Arana","El Soldado","La Estrella","El Cazo","El Mundo","El Apache","El Nopal","El Alacran",
-"La Rosa","La Calavera","La Campana","El Cantarito","El Venado","El Sol","La Corona","La Chalupa","El Pino","El Pescado",
-"La Palma","La Maceta","El Arpa","La Rana"
+const names = [
+  "El Gallo","El Diablo","La Dama","El Catrin","El Paraguas","La Sirena","La Escalera","La Botella","El Barril","El Arbol",
+  "El Melon","El Valiente","El Gorrito","La Muerte","La Pera","La Bandera","El Bandolon","El Violoncello","La Garza","El Pajaro",
+  "La Mano","La Bota","La Luna","El Cotorro","El Borracho","El Negrito","El Corazon","La Sandia","El Tambor","El Camaron",
+  "Las Jaras","El Musico","La Arana","El Soldado","La Estrella","El Cazo","El Mundo","El Apache","El Nopal","El Alacran",
+  "La Rosa","La Calavera","La Campana","El Cantarito","El Venado","El Sol","La Corona","La Chalupa","El Pino","El Pescado",
+  "La Palma","La Maceta","El Arpa","La Rana"
 ];
 
-const cardImages = {
-"El Gallo":"https://i.imgur.com/z1nEFgO.jpeg",
-"El Diablo":"https://i.imgur.com/rxWv6vK.jpeg",
-"La Dama":"https://i.imgur.com/XgDqiNl.jpeg",
-"El Catrin":"https://i.imgur.com/PpondFd.jpeg",
-"El Paraguas":"https://i.imgur.com/uRI9iNC.jpeg",
-"La Sirena":"https://i.imgur.com/8YJMkhu.jpeg",
-"La Escalera":"https://i.imgur.com/2uBrCdL.jpeg",
-"La Botella":"https://i.imgur.com/HyX7qfV.jpeg",
-"El Barril":"https://i.imgur.com/r3b4IY2.jpeg",
-"El Arbol":"https://i.imgur.com/3MLbB7C.jpeg",
-"El Melon":"https://i.imgur.com/frSRTj6.jpeg",
-"El Valiente":"https://i.imgur.com/WxwS83V.jpeg",
-"El Gorrito":"https://i.imgur.com/4CqxyVO.jpeg",
-"La Muerte":"https://i.imgur.com/izrshro.jpeg",
-"La Pera":"https://i.imgur.com/3bUxEox.jpeg",
-"La Bandera":"https://i.imgur.com/pQP8NNO.jpeg",
-"El Bandolon":"https://i.imgur.com/dxitjQN.jpeg",
-"El Violoncello":"https://i.imgur.com/ogjNjnA.jpeg",
-"La Garza":"https://i.imgur.com/vMKaIdv.jpeg",
-"El Pajaro":"https://i.imgur.com/uEiQBFO.jpeg",
-"La Mano":"https://i.imgur.com/VkKLlqr.jpeg",
-"La Bota":"https://i.imgur.com/NDBe5OH.jpeg",
-"La Luna":"https://i.imgur.com/e1fPz9R.jpeg",
-"El Cotorro":"https://i.imgur.com/gFq9O8O.jpeg",
-"El Borracho":"https://i.imgur.com/Y2TjiRl.jpeg",
-"El Negrito":"https://i.imgur.com/dCe9v1p.jpeg",
-"El Corazon":"https://i.imgur.com/q41EefM.jpeg",
-"La Sandia":"https://i.imgur.com/NDqOGAp.jpeg",
-"El Tambor":"https://i.imgur.com/vP4xdAG.jpeg",
-"El Camaron":"https://i.imgur.com/51Y9ucg.jpeg",
-"Las Jaras":"https://i.imgur.com/6j4KzKP.jpeg",
-"El Musico":"https://i.imgur.com/Dkp9VKW.jpeg",
-"La Arana":"https://i.imgur.com/b7iKPIi.jpeg",
-"El Soldado":"https://i.imgur.com/Q8G5bt3.jpeg",
-"La Estrella":"https://i.imgur.com/U5RrzEG.jpeg",
-"El Cazo":"https://i.imgur.com/aGCKp5q.jpeg",
-"El Mundo":"https://i.imgur.com/tPYzCG9.jpeg",
-"El Apache":"https://i.imgur.com/UB3jKbQ.jpeg",
-"El Nopal":"https://i.imgur.com/ZJvkH3F.jpeg",
-"El Alacran":"https://i.imgur.com/AVh1tlK.jpeg",
-"La Rosa":"https://i.imgur.com/Z35ozqa.jpeg",
-"La Calavera":"https://i.imgur.com/gsQI9gG.jpeg",
-"La Campana":"https://i.imgur.com/54E5hs5.jpeg",
-"El Cantarito":"https://i.imgur.com/92ajsYs.jpeg",
-"El Venado":"https://i.imgur.com/Ty0a9fh.jpeg",
-"El Sol":"https://i.imgur.com/0pWa6PF.jpeg",
-"La Corona":"https://i.imgur.com/vKPQeWp.jpeg",
-"La Chalupa":"https://i.imgur.com/WRjLeQ9.jpeg",
-"El Pino":"https://i.imgur.com/3g3mZ1j.jpeg",
-"El Pescado":"https://i.imgur.com/bjpjmtT.jpeg",
-"La Palma":"https://i.imgur.com/tIXKSL6.jpeg",
-"La Maceta":"https://i.imgur.com/XIXd4vn.jpeg",
-"El Arpa":"https://i.imgur.com/kCE4eI4.jpeg",
-"La Rana":"https://i.imgur.com/FrLUeDC.jpeg"
-};
+const imgs = {};
+names.forEach((name, i) => imgs[name] = `https://raw.githubusercontent.com/oceanlol/winning/main/card%20${i+1}.jpg`);
 
-// CALLER MODE
-let callerList = ["El Musico","El Catrin","La Dama","El Negrito"];
-let injectQueue = [];
-let blendMode = false;
-let callCount = 0;
+let pool = [];
+let rigQueue = [];
+let drawn = [];
+let loop = null;
 
-// STATE
-let randomPool = [];
-let autoInterval = null;
-let countdownInterval = null;
-let isSpeaking = false;
-let calledSet = new Set();
-
-// PRELOAD IMAGES
-Object.values(cardImages).forEach(src=>{ const img=new Image(); img.src=src; });
-
-// SPEAK
-function speak(text, callback){
-    let msg = new SpeechSynthesisUtterance(text);
-    let v = speechSynthesis.getVoices().find(v=>v.lang.includes("es")) || speechSynthesis.getVoices()[0];
-    if(v) msg.voice = v;
-    msg.onend = ()=>{isSpeaking=false; if(callback)callback();}
-    isSpeaking=true;
-    speechSynthesis.cancel();
-    speechSynthesis.speak(msg);
+function say(t) {
+  speechSynthesis.cancel();
+  const m = new SpeechSynthesisUtterance(t);
+  m.lang = 'es-MX';
+  m.rate = 0.95;
+  speechSynthesis.speak(m);
 }
 
-// SETUP
-function setup(){ randomPool=[...deck].sort(()=>Math.random()-0.5); }
+function next() {
+  let card = null;
 
-// DISPLAY CARD
-function displayCard(card){
-    if(calledSet.has(card)) return; // NO DUPES
-    calledSet.add(card);
+  if (rigQueue.length > 0) {
+    card = rigQueue.shift();
+    // Logic to ensure NO DUPES:
+    pool = pool.filter(c => c !== card);
+  } else if (pool.length > 0) {
+    card = pool.shift();
+  }
 
-    const inner=document.getElementById("cardInner");
-    const img=document.getElementById("cardImage");
-
-    inner.style.transform="rotateY(180deg)";
-
-    setTimeout(()=>{
-        img.src=cardImages[card];
-        document.getElementById("cardName").innerText=card;
-        speak(card);
-        addToHistory(card);
-
-        inner.style.transform="rotateY(0deg)";
-        inner.classList.add("bounce");
-        setTimeout(()=>inner.classList.remove("bounce"),400);
-    },300);
-
-    startCountdown();
+  if (card) {
+    drawn.push(card);
+    render(card);
+  } else {
+    stopGame();
+    document.getElementById('cardName').innerText = "FIN";
+  }
 }
 
-// NEXT CARD
-function nextCard(){
-    if(isSpeaking) return;
+function render(name) {
+  const el = document.getElementById('cardEl');
+  const img = document.getElementById('cardImg');
+  const title = document.getElementById('cardName');
+  
+  el.classList.add('slide-out');
+  el.classList.remove('slide-in');
 
-    let card;
-    if(blendMode && injectQueue.length>0 && callCount%2===1){
-        card = injectQueue.shift();
-    } else {
-        if(randomPool.length===0) return;
-        card = randomPool.shift();
-    }
+  setTimeout(() => {
+    img.src = imgs[name];
+    title.innerText = name;
+    document.getElementById('deckLeft').innerText = `${pool.length} RESTANTES`;
 
-    displayCard(card);
-    callCount++;
+    // Visual History
+    const div = document.createElement('div');
+    div.className = 'hist-card';
+    div.innerHTML = `<img src="${imgs[name]}">`;
+    document.getElementById('history').prepend(div);
+
+    el.classList.remove('slide-out');
+    el.classList.add('slide-in');
+    say(name);
+  }, 400);
 }
 
-// START GAME
-function startGame(){
-    speechSynthesis.resume();
-    stopAuto();
-    setup();
-    callCount=0;
-    calledSet.clear();
-    document.getElementById("history").innerHTML="";
-
-    nextCard();
-    autoInterval=setInterval(nextCard,getSpeed()*1000);
+function startGame() {
+  stopGame();
+  if (drawn.length === 0) pool = [...names].sort(() => Math.random() - 0.5);
+  say("¡Corre y se va!");
+  setTimeout(() => {
+    next();
+    loop = setInterval(next, document.getElementById('speed').value * 1000);
+  }, 1200);
 }
 
-// CALLER
-function activateCaller(){
-    injectQueue=[...callerList].sort(()=>Math.random()-0.5);
-    blendMode=true;
+function stopGame() { clearInterval(loop); }
+
+function manualNext() {
+  stopGame();
+  next();
 }
 
-// HISTORY
-function addToHistory(card){
-    let d=document.createElement("div");
-    d.innerText=card;
-    history.prepend(d);
+function resetGame() {
+  stopGame();
+  pool = [...names].sort(() => Math.random() - 0.5);
+  drawn = [];
+  rigQueue = [];
+  document.getElementById('history').innerHTML = '';
+  document.getElementById('cardEl').classList.add('slide-out');
+  document.getElementById('cardName').innerText = "LISTOS";
+  document.getElementById('deckLeft').innerText = "54 RESTANTES";
 }
 
-// CONTROLS
-function stopAuto(){
-    clearInterval(autoInterval);
-    clearInterval(countdownInterval);
+function activateCaller() {
+  // Silent Rig - No alerts.
+  // Set your winning sequence here
+  rigQueue = ["La Chalupa", "El Borracho", "La Sirena", "El Corazon"];
 }
 
-function resetGame(){
-    stopAuto();
-    blendMode=false;
-    injectQueue=[];
-    document.getElementById("cardName").innerText="---";
-    document.getElementById("countdown").innerText="0";
-    document.getElementById("history").innerHTML="";
-    calledSet.clear();
-}
-
-// SPEED
-function getSpeed(){ return parseInt(document.getElementById("speed").value); }
-
-// TIMER
-function startCountdown(){
-    clearInterval(countdownInterval);
-    let t=getSpeed();
-    countdown.innerText=t;
-    countdownInterval=setInterval(()=>{
-        t--;
-        countdown.innerText=t;
-        if(t<=0) clearInterval(countdownInterval);
-    },1000);
-}
-
-// TAP + SWIPE
-let startX=0;
-document.getElementById("tapZone").addEventListener("touchstart",e=>{ startX=e.touches[0].clientX; });
-document.getElementById("tapZone").addEventListener("touchend",e=>{
-    let endX=e.changedTouches[0].clientX;
-    nextCard();
-});
-
-// PARTICLES
-const canvas=document.getElementById("particles");
-const ctx=canvas.getContext("2d");
-function resizeCanvas(){ canvas.width=window.innerWidth; canvas.height=window.innerHeight; }
-window.addEventListener("resize",resizeCanvas);
-resizeCanvas();
-
-let particles=[];
-for(let i=0;i<70;i++){ particles.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,r:Math.random()*2,d:Math.random()*1}); }
-
-function drawParticles(){
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    ctx.fillStyle="white";
-    particles.forEach(p=>{
-        ctx.beginPath();
-        ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-        ctx.fill();
-        p.y+=p.d;
-        if(p.y>canvas.height){ p.y=0; p.x=Math.random()*canvas.width; }
-    });
-    requestAnimationFrame(drawParticles);
-}
-drawParticles();
+window.speechSynthesis.onvoiceschanged = () => { speechSynthesis.getVoices(); };
 </script>
-
 </body>
 </html>
