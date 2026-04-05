@@ -11,7 +11,6 @@
     --panel: #141417;
     --accent: #00f2fe;
     --card-white: #ffffff;
-    --win-gold: #f9d423;
   }
 
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -29,7 +28,6 @@
     overflow: hidden;
   }
 
-  /* Main Dashboard Layout */
   .app-grid {
     display: grid;
     grid-template-columns: 1fr 1.5fr 1fr; 
@@ -40,7 +38,6 @@
     gap: 20px;
   }
 
-  /* Side Sections (The Black Space Fillers) */
   .side-panel {
     display: flex;
     flex-direction: column;
@@ -72,7 +69,6 @@
   }
   .side-card img { width: 100%; height: 100%; object-fit: contain; }
 
-  /* Center Stage */
   .center-stage {
     display: flex;
     flex-direction: column;
@@ -83,7 +79,6 @@
   .main-card-area {
     width: 280px;
     height: 420px;
-    perspective: 1000px;
   }
 
   .card-wrap {
@@ -97,16 +92,13 @@
   }
   .card-wrap img { width: 100%; height: 100%; object-fit: contain; }
 
-  /* Animations */
   .slide-out { opacity: 0; transform: translateY(40px) scale(0.9); }
   .slide-in { opacity: 1; transform: translateY(0) scale(1); }
 
-  /* UI Labels */
   .title { font-size: 0.8rem; letter-spacing: 3px; color: var(--accent); margin-bottom: 5px; text-transform: uppercase; }
   .label-text { font-size: 2.2rem; font-weight: 900; margin: 5px 0; }
   .deck-count { font-size: 0.9rem; opacity: 0.6; }
 
-  /* Control Panel */
   .controls {
     background: var(--panel);
     padding: 20px;
@@ -129,7 +121,7 @@
     font-size: 0.85rem;
   }
 
-  .btn-start { grid-column: span 2; background: white; color: black; font-size: 1rem; }
+  .btn-start { grid-column: span 2; background: white; color: black; font-size: 1rem; border: none; }
   .btn-win { background: linear-gradient(45deg, #f9d423, #ff4e50); color: black; border: none; }
 
   @media (max-width: 1000px) {
@@ -141,7 +133,6 @@
 <body>
 
 <div class="app-grid">
-  
   <div class="side-panel">
     <div class="title">Anteriores</div>
     <div id="prevList" class="history-wall"></div>
@@ -149,13 +140,11 @@
 
   <div class="center-stage">
     <div class="title">Loteria Pro Max</div>
-    
     <div class="main-card-area" onclick="manualNext()">
       <div id="mainCard" class="card-wrap slide-out">
         <img id="mainImg" src="">
       </div>
     </div>
-
     <h1 class="label-text" id="mainLabel">LISTOS</h1>
     <div class="deck-count" id="deckCount">54 RESTANTES</div>
 
@@ -175,7 +164,6 @@
     <div class="title">Historial Completo</div>
     <div id="fullHistory" class="history-wall"></div>
   </div>
-
 </div>
 
 <script>
@@ -187,6 +175,9 @@ const names = [
   "La Rosa","La Calavera","La Campana","El Cantarito","El Venado","El Sol","La Corona","La Chalupa","El Pino","El Pescado",
   "La Palma","La Maceta","El Arpa","La Rana"
 ];
+
+// The Locked Cards
+const reserved = ["El Musico", "El Catrin", "La Dama", "El Negrito"];
 
 const cardImgs = {};
 names.forEach((n, i) => cardImgs[n] = `https://raw.githubusercontent.com/oceanlol/winning/main/card%20${i+1}.jpg`);
@@ -209,7 +200,6 @@ function next() {
 
   if (rigQueue.length > 0) {
     card = rigQueue.shift();
-    pool = pool.filter(c => c !== card); // ENSURE NO DUPES
   } else if (pool.length > 0) {
     card = pool.shift();
   }
@@ -233,7 +223,7 @@ function renderMain(name) {
   setTimeout(() => {
     img.src = cardImgs[name];
     label.innerText = name;
-    document.getElementById('deckCount').innerText = `${pool.length} RESTANTES`;
+    document.getElementById('deckCount').innerText = `${pool.length + rigQueue.length} RESTANTES`;
     wrap.classList.remove('slide-out');
     wrap.classList.add('slide-in');
     talk(name);
@@ -241,7 +231,6 @@ function renderMain(name) {
 }
 
 function updateSides(lastCard) {
-  // Add to left (Recent)
   const left = document.getElementById('prevList');
   const cardDiv = document.createElement('div');
   cardDiv.className = 'side-card';
@@ -249,7 +238,6 @@ function updateSides(lastCard) {
   left.prepend(cardDiv);
   if (left.children.length > 4) left.removeChild(left.lastChild);
 
-  // Add to right (Full Wall)
   const right = document.getElementById('fullHistory');
   const cardDiv2 = cardDiv.cloneNode(true);
   right.prepend(cardDiv2);
@@ -257,7 +245,10 @@ function updateSides(lastCard) {
 
 function startGame() {
   stopGame();
-  if (history.length === 0) pool = [...names].sort(() => Math.random() - 0.5);
+  if (history.length === 0) {
+    // PREVENT NORMAL CALLS: Remove reserved cards from the pool entirely
+    pool = names.filter(name => !reserved.includes(name)).sort(() => Math.random() - 0.5);
+  }
   talk("Corre y se va");
   setTimeout(() => {
     next();
@@ -270,18 +261,20 @@ function manualNext() { stopGame(); next(); }
 
 function resetGame() {
   stopGame();
-  pool = [...names].sort(() => Math.random() - 0.5);
+  pool = names.filter(name => !reserved.includes(name)).sort(() => Math.random() - 0.5);
   history = []; rigQueue = [];
   document.getElementById('prevList').innerHTML = '';
   document.getElementById('fullHistory').innerHTML = '';
   document.getElementById('mainCard').classList.add('slide-out');
   document.getElementById('mainLabel').innerText = "LISTOS";
-  document.getElementById('deckCount').innerText = "54 RESTANTES";
+  document.getElementById('deckCount').innerText = "50 RESTANTES";
 }
 
 function activateCaller() {
-  // THE RIG: EL MUSICO, EL CATRIN, LA DAMA, EL NEGRITO
-  rigQueue = ["El Musico", "El Catrin", "La Dama", "El Negrito"];
+  // ONLY way to call these 4 cards is through this button
+  if (rigQueue.length === 0 && !history.some(r => reserved.includes(r))) {
+    rigQueue = [...reserved];
+  }
 }
 
 function triggerWinner() {
