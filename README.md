@@ -3,15 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Lotería Pro MAX</title>
+<title>Lotería Dual Dashboard</title>
 
 <style>
   :root {
-    --bg: #0a0a0c;
-    --panel: #1a1a1f;
+    --bg: #050506;
+    --panel: #141417;
     --accent: #00f2fe;
     --card-white: #ffffff;
-    --btn-text: #ffffff;
     --win-gold: #f9d423;
   }
 
@@ -24,188 +23,191 @@
     color: white;
     display: flex;
     justify-content: center;
-    height: 100vh;
+    align-items: center;
+    min-height: 100vh;
     overflow: hidden;
   }
 
-  .container {
-    width: 100%;
-    max-width: 400px;
+  /* Dashboard Layout */
+  .dashboard {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: row; /* Desktop/Landscape mode */
+    justify-content: space-around;
+    align-items: center;
+    padding: 20px;
+    gap: 20px;
+  }
+
+  /* Vertical Stack for Mobile */
+  @media (max-width: 800px) {
+    .dashboard { flex-direction: column; overflow-y: auto; height: auto; padding: 10px; }
+    .stage { width: 220px !important; height: 330px !important; }
+  }
+
+  /* Deck Sections */
+  .deck-section {
+    flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 20px;
-    justify-content: space-between;
+    gap: 10px;
   }
 
   .stats {
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-weight: 800;
-    color: rgba(255,255,255,0.3);
+    color: var(--accent);
+    letter-spacing: 2px;
     text-transform: uppercase;
-    letter-spacing: 1.5px;
   }
 
-  /* Card Stage */
+  /* Card Display */
   .stage {
     position: relative;
-    width: 260px;
-    height: 380px;
+    width: 280px;
+    height: 420px;
     perspective: 1000px;
-    margin: 10px 0;
   }
 
   .card-wrap {
     width: 100%;
     height: 100%;
     background: var(--card-white);
-    border-radius: 22px;
-    border: 8px solid white;
-    box-shadow: 0 30px 60px rgba(0,0,0,0.7);
+    border-radius: 18px;
+    border: 6px solid white;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.8);
     display: flex;
     justify-content: center;
     align-items: center;
-    transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
   }
 
-  .card-wrap img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-  }
+  .card-wrap img { width: 100%; height: 100%; object-fit: contain; }
 
-  /* Animation States */
-  .slide-out { opacity: 0; transform: translateX(120px) rotate(8deg) scale(0.9); }
-  .slide-in { opacity: 1; transform: translateX(0) rotate(0deg) scale(1); }
+  .slide-out { opacity: 0; transform: translateY(50px) scale(0.9); }
+  .slide-in { opacity: 1; transform: translateY(0) scale(1); }
 
-  #cardName {
-    font-size: 2.2rem;
+  .card-label {
+    font-size: 1.8rem;
     font-weight: 900;
-    margin: 0;
+    height: 40px;
     text-align: center;
-    background: linear-gradient(180deg, #fff 0%, #bbb 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    height: 45px;
+    margin-top: 10px;
   }
 
-  /* History Dock */
-  .history-bar {
+  /* Center Controls */
+  .controls-panel {
+    width: 320px;
+    background: var(--panel);
+    padding: 25px;
+    border-radius: 24px;
     display: flex;
-    gap: 8px;
-    overflow-x: auto;
-    width: 100%;
-    padding: 10px 0;
-    scrollbar-width: none;
+    flex-direction: column;
+    gap: 15px;
+    border: 1px solid rgba(255,255,255,0.05);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
   }
-  .history-bar::-webkit-scrollbar { display: none; }
 
-  .hist-card {
-    width: 45px; height: 65px;
-    background: white;
-    border-radius: 6px;
-    flex-shrink: 0;
-    border: 2px solid white;
-    overflow: hidden;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.4);
-  }
-  .hist-card img { width: 100%; height: 100%; object-fit: contain; }
-
-  /* Controls */
   .btn-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    width: 100%;
+    gap: 10px;
   }
 
   button {
-    background: var(--panel);
-    border: 1px solid rgba(255,255,255,0.05);
-    color: var(--btn-text);
-    padding: 16px;
-    border-radius: 16px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: white;
+    padding: 14px;
+    border-radius: 12px;
     font-weight: 700;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     cursor: pointer;
     transition: 0.2s;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 5px;
   }
 
-  button:active { transform: scale(0.95); background: #2a2a30; }
+  button:active { transform: scale(0.95); }
 
   .btn-start {
     grid-column: span 2;
     background: white;
     color: black;
-    font-size: 1.1rem;
+    font-size: 1rem;
     border: none;
   }
 
-  .btn-win {
-    background: linear-gradient(45deg, #f9d423, #ff4e50);
-    border: none;
-    color: #000;
-  }
+  .btn-win { background: linear-gradient(45deg, #f9d423, #ff4e50); border: none; color: black; }
+  .btn-caller { background: #1a1a1f; border: 1px solid var(--accent); color: var(--accent); }
 
-  input[type=range] {
+  .history-line {
+    display: flex;
+    gap: 5px;
+    overflow-x: auto;
     width: 100%;
-    accent-color: #fff;
-    margin-top: 10px;
+    scrollbar-width: none;
+    padding: 5px 0;
   }
+  .h-thumb { width: 30px; height: 45px; background: #fff; border-radius: 3px; flex-shrink: 0; overflow: hidden; }
+  .h-thumb img { width: 100%; height: 100%; object-fit: contain; }
 
-  /* Winner Overlay */
   .overlay {
     position: fixed; top:0; left:0; width:100%; height:100%;
-    background: rgba(0,0,0,0.9);
+    background: rgba(0,0,0,0.95);
     display: none; justify-content: center; align-items: center; z-index: 100;
   }
 </style>
 </head>
 <body>
 
-<div class="container">
-  <div class="stats">
-    <span>LOTERÍA PRO MAX</span>
-    <span id="deckLeft">54 CARTAS</span>
+<div class="dashboard">
+  
+  <div class="deck-section">
+    <div class="stats">DECK A: <span id="countA">54</span></div>
+    <div class="stage">
+      <div id="cardA" class="card-wrap slide-out">
+        <img id="imgA" src="">
+      </div>
+    </div>
+    <div class="card-label" id="labelA">LISTO</div>
+    <div class="history-line" id="histA"></div>
   </div>
 
-  <div class="stage" onclick="manualNext()">
-    <div id="cardEl" class="card-wrap slide-out">
-      <img id="cardImg" src="">
+  <div class="controls-panel">
+    <div style="text-align: center; color: var(--accent); font-weight: 900; letter-spacing: 2px;">DASHBOARD</div>
+    
+    <div style="text-align:center;">
+      <span style="font-size:0.7rem; opacity:0.5;">INTERVALO: <span id="speedVal">4</span>s</span>
+      <input type="range" id="speed" min="2" max="10" value="4" oninput="document.getElementById('speedVal').innerText=this.value" style="width:100%; accent-color: white;">
+    </div>
+
+    <div class="btn-grid">
+      <button class="btn-start" onclick="startGame()">▶ INICIAR AMBOS</button>
+      <button class="btn-caller" onclick="activateCaller()">🎭 CALLER MODE</button>
+      <button class="btn-win" onclick="triggerWinner()">🏆 LOTERÍA!</button>
+      <button onclick="stopGame()">⏸ PAUSA</button>
+      <button onclick="resetGame()" style="grid-column: span 2;">🔄 REINICIAR DASHBOARD</button>
     </div>
   </div>
 
-  <h1 id="cardName">LISTOS</h1>
-
-  <div class="history-bar" id="history"></div>
-
-  <div style="width:100%; text-align:center;">
-    <span style="font-size:0.7rem; opacity:0.5;">VELOCIDAD: <span id="speedVal">4</span>s</span>
-    <input type="range" id="speed" min="2" max="10" value="4" oninput="document.getElementById('speedVal').innerText=this.value">
+  <div class="deck-section">
+    <div class="stats">DECK B: <span id="countB">54</span></div>
+    <div class="stage">
+      <div id="cardB" class="card-wrap slide-out">
+        <img id="imgB" src="">
+      </div>
+    </div>
+    <div class="card-label" id="labelB">LISTO</div>
+    <div class="history-line" id="histB"></div>
   </div>
 
-  <div class="btn-grid">
-    <button class="btn-start" onclick="startGame()">▶ INICIAR JUEGO</button>
-    <button onclick="activateCaller()">🎭 CALLER MODE</button>
-    <button class="btn-win" onclick="triggerWinner()">🏆 LOTERÍA!</button>
-    <button onclick="stopGame()">⏸ PAUSA</button>
-    <button onclick="resetGame()">🔄 REINICIAR</button>
-  </div>
 </div>
 
 <div class="overlay" id="winOverlay">
   <div style="text-align:center;">
-    <h1 style="color:var(--win-gold); font-size:3rem; margin:0;">¡BUENAS!</h1>
-    <p>¿Revisar jugada?</p>
-    <button onclick="verifyCards()" style="background:white; color:black; width:100%; margin-bottom:10px;">REVISAR</button>
-    <button onclick="closeWin()" style="opacity:0.5; border:none; background:none;">Cerrar</button>
+    <h1 style="color:var(--win-gold); font-size:4rem; margin:0;">¡BUENAS!</h1>
+    <button onclick="closeWin()" style="background:white; color:black; padding: 20px 40px; border-radius: 10px; border:none; font-weight:900;">CERRAR</button>
   </div>
 </div>
 
@@ -222,119 +224,95 @@ const names = [
 const imgs = {};
 names.forEach((name, i) => imgs[name] = `https://raw.githubusercontent.com/oceanlol/winning/main/card%20${i+1}.jpg`);
 
-let pool = [];
+let poolA = [], poolB = [];
 let rigQueue = [];
-let drawn = [];
 let loop = null;
 
-function say(t, cb) {
+function say(t) {
   speechSynthesis.cancel();
   const m = new SpeechSynthesisUtterance(t);
   m.lang = 'es-MX';
-  m.rate = 0.95;
-  if(cb) m.onend = cb;
+  m.rate = 1.0;
   speechSynthesis.speak(m);
 }
 
 function next() {
-  let card = null;
-
-  if (rigQueue.length > 0) {
-    card = rigQueue.shift();
-    pool = pool.filter(c => c !== card); // STRICT NO DUPES
-  } else if (pool.length > 0) {
-    card = pool.shift();
+  // Logic for Deck A
+  let cardA = (rigQueue.length > 0) ? rigQueue.shift() : poolA.shift();
+  if(cardA) {
+    poolA = poolA.filter(c => c !== cardA);
+    render('A', cardA);
   }
 
-  if (card) {
-    drawn.push(card);
-    render(card);
-  } else {
-    stopGame();
-    document.getElementById('cardName').innerText = "FIN";
-  }
+  // Logic for Deck B (Randomly delayed so they don't talk over each other perfectly)
+  setTimeout(() => {
+    let cardB = poolB.shift();
+    if(cardB) {
+        poolB = poolB.filter(c => c !== cardB);
+        render('B', cardB);
+    }
+  }, 1500);
 }
 
-function render(name) {
-  const el = document.getElementById('cardEl');
-  const img = document.getElementById('cardImg');
-  const title = document.getElementById('cardName');
+function render(id, name) {
+  const wrap = document.getElementById(`card${id}`);
+  const img = document.getElementById(`img${id}`);
+  const label = document.getElementById(`label${id}`);
+  const count = document.getElementById(`count${id}`);
   
-  el.classList.add('slide-out');
-  el.classList.remove('slide-in');
-
+  wrap.classList.add('slide-out');
   setTimeout(() => {
     img.src = imgs[name];
-    title.innerText = name;
-    document.getElementById('deckLeft').innerText = `${pool.length} RESTANTES`;
+    label.innerText = name;
+    count.innerText = (id === 'A' ? poolA.length : poolB.length);
+    
+    // History
+    const h = document.createElement('div');
+    h.className = 'h-thumb';
+    h.innerHTML = `<img src="${imgs[name]}">`;
+    document.getElementById(`hist${id}`).prepend(h);
 
-    const div = document.createElement('div');
-    div.className = 'hist-card';
-    div.innerHTML = `<img src="${imgs[name]}">`;
-    document.getElementById('history').prepend(div);
-
-    el.classList.remove('slide-out');
-    el.classList.add('slide-in');
+    wrap.classList.remove('slide-out');
+    wrap.classList.add('slide-in');
     say(name);
-  }, 400);
+  }, 300);
 }
 
 function startGame() {
   stopGame();
-  if (drawn.length === 0) pool = [...names].sort(() => Math.random() - 0.5);
-  say("¡Corre y se va!");
-  setTimeout(() => {
-    next();
-    loop = setInterval(next, document.getElementById('speed').value * 1000);
-  }, 1200);
+  if(poolA.length === 0) poolA = [...names].sort(() => Math.random() - 0.5);
+  if(poolB.length === 0) poolB = [...names].sort(() => Math.random() - 0.5);
+  
+  say("¡Corre y se va con los dos mazos!");
+  next();
+  loop = setInterval(next, document.getElementById('speed').value * 1000);
 }
 
 function stopGame() { clearInterval(loop); }
 
-function manualNext() {
-  stopGame();
-  next();
-}
-
 function resetGame() {
   stopGame();
-  pool = [...names].sort(() => Math.random() - 0.5);
-  drawn = [];
+  poolA = [...names].sort(() => Math.random() - 0.5);
+  poolB = [...names].sort(() => Math.random() - 0.5);
   rigQueue = [];
-  document.getElementById('history').innerHTML = '';
-  document.getElementById('cardEl').classList.add('slide-out');
-  document.getElementById('cardName').innerText = "LISTOS";
-  document.getElementById('deckLeft').innerText = "54 RESTANTES";
+  document.getElementById('histA').innerHTML = '';
+  document.getElementById('histB').innerHTML = '';
+  document.getElementById('cardA').classList.add('slide-out');
+  document.getElementById('cardB').classList.add('slide-out');
 }
 
 function activateCaller() {
-  // RIGGED SEQUENCE: El Musico, El Catrin, La Dama, El Negrito
+  // EL MUSICO, EL CATRIN, LA DAMA, EL NEGRITO
   rigQueue = ["El Musico", "El Catrin", "La Dama", "El Negrito"];
 }
 
 function triggerWinner() {
   stopGame();
-  say("¡Lotería!");
+  say("¡Lotería! ¡Buenas!");
   document.getElementById('winOverlay').style.display = 'flex';
 }
 
-function verifyCards() {
-  document.getElementById('winOverlay').style.display = 'none';
-  let i = 0;
-  function readBack() {
-    if (i < drawn.length) {
-      render(drawn[i]);
-      say(drawn[i], () => { i++; setTimeout(readBack, 600); });
-    }
-  }
-  readBack();
-}
-
-function closeWin() {
-  document.getElementById('winOverlay').style.display = 'none';
-}
-
-window.speechSynthesis.onvoiceschanged = () => { speechSynthesis.getVoices(); };
+function closeWin() { document.getElementById('winOverlay').style.display = 'none'; }
 </script>
 </body>
 </html>
