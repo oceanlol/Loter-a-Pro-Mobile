@@ -8,9 +8,10 @@
 <style>
   :root {
     --bg: #050506;
-    --panel: #141417;
+    --panel: #0e0e10;
     --accent: #00f2fe;
     --card-white: #ffffff;
+    --panel-border: rgba(255, 255, 255, 0.08);
   }
 
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -30,55 +31,61 @@
 
   .app-grid {
     display: grid;
-    grid-template-columns: 1fr 1.5fr 1fr; 
+    grid-template-columns: 240px 1.5fr 320px; /* Precise widths for better balance */
     width: 100%;
     height: 100%;
     align-items: center;
-    padding: 20px;
-    gap: 20px;
+    padding: 25px;
+    gap: 25px;
   }
 
+  /* Side Panels */
   .side-panel {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    height: 80%;
-    justify-content: center;
-    opacity: 0.5;
+    height: 90vh;
+    background: var(--panel);
+    border-radius: 24px;
+    border: 1px solid var(--panel-border);
+    padding: 20px;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
   }
 
   .history-wall {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    justify-content: center;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 2-column grid for the wall */
+    gap: 12px;
     overflow-y: auto;
-    max-height: 100%;
-    padding: 10px;
+    flex-grow: 1;
+    padding: 10px 5px;
     scrollbar-width: none;
   }
 
+  /* Better Side Card Styling */
   .side-card {
-    width: 100px;
-    height: 150px;
+    width: 100%;
+    aspect-ratio: 2/3;
     background: white;
     border-radius: 8px;
-    border: 3px solid white;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-    flex-shrink: 0;
+    border: 2px solid white;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    overflow: hidden;
+    transition: transform 0.2s;
   }
   .side-card img { width: 100%; height: 100%; object-fit: contain; }
+  .side-card:first-child { border-color: var(--accent); box-shadow: 0 0 15px var(--accent); }
 
+  /* Center Stage */
   .center-stage {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 15px;
+    gap: 20px;
   }
 
   .main-card-area {
-    width: 280px;
-    height: 420px;
+    width: 300px;
+    height: 450px;
   }
 
   .card-wrap {
@@ -88,7 +95,6 @@
     border-radius: 20px;
     border: 8px solid white;
     box-shadow: 0 30px 60px rgba(0,0,0,0.8);
-    /* Faster transition for zero lag feel */
     transition: transform 0.3s ease-out, opacity 0.3s ease-out;
   }
   .card-wrap img { width: 100%; height: 100%; object-fit: contain; }
@@ -103,10 +109,21 @@
     100% { transform: translate(0, 0); }
   }
 
-  .title { font-size: 0.8rem; letter-spacing: 3px; color: var(--accent); margin-bottom: 5px; text-transform: uppercase; }
-  .label-text { font-size: 2.2rem; font-weight: 900; margin: 5px 0; }
-  .deck-count { font-size: 0.9rem; opacity: 0.6; }
+  .title-header { 
+    font-size: 0.7rem; 
+    letter-spacing: 4px; 
+    color: var(--accent); 
+    margin-bottom: 15px; 
+    text-transform: uppercase; 
+    text-align: center;
+    border-bottom: 1px solid var(--panel-border);
+    padding-bottom: 10px;
+  }
 
+  .label-text { font-size: 2.5rem; font-weight: 900; margin: 10px 0; text-shadow: 0 0 20px rgba(0,242,254,0.3); }
+  .deck-count { font-size: 0.9rem; opacity: 0.6; font-weight: 700; }
+
+  /* Controls */
   .controls {
     background: var(--panel);
     padding: 20px;
@@ -114,26 +131,28 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 12px;
-    width: 340px;
-    border: 1px solid rgba(255,255,255,0.05);
+    width: 360px;
+    border: 1px solid var(--panel-border);
   }
 
   button {
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
     color: white;
-    padding: 14px;
+    padding: 15px;
     border-radius: 14px;
     font-weight: 700;
     cursor: pointer;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
+    transition: 0.2s;
   }
+  button:hover { background: rgba(255,255,255,0.08); }
 
   .btn-start { grid-column: span 2; background: white; color: black; font-size: 1rem; border: none; }
   .btn-win { background: linear-gradient(45deg, #f9d423, #ff4e50); color: black; border: none; }
 
-  @media (max-width: 1000px) {
-    .app-grid { grid-template-columns: 1fr; }
+  @media (max-width: 1100px) {
+    .app-grid { grid-template-columns: 1fr; overflow-y: auto; height: auto; }
     .side-panel { display: none; }
   }
 </style>
@@ -142,36 +161,39 @@
 
 <div class="app-grid">
   <div class="side-panel">
-    <div class="title">Previous</div>
-    <div id="prevList" class="history-wall"></div>
+    <div class="title-header">Previous</div>
+    <div id="prevList" class="history-wall" style="grid-template-columns: 1fr;"></div>
   </div>
 
   <div class="center-stage">
-    <div class="title">Loteria Pro Max</div>
+    <div style="text-align: center;">
+        <div class="title-header" style="border:none; margin:0;">Loteria Pro Max</div>
+        <div class="deck-count" id="deckCount">54 REMAINING</div>
+    </div>
+    
     <div class="main-card-area" onclick="manualNext()">
       <div id="mainCard" class="card-wrap slide-out">
         <img id="mainImg" src="">
       </div>
     </div>
+
     <h1 class="label-text" id="mainLabel">READY</h1>
-    <div class="deck-count" id="deckCount">54 REMAINING</div>
 
     <div class="controls">
       <button class="btn-start" id="startBtn" onclick="startGame()">▶ START GAME</button>
       <button onclick="activateCaller()">🎭 CALLER MODE</button>
       <button class="btn-win" onclick="triggerWinner()">🏆 LOTERÍA!</button>
-      <button onclick="stopGame()">⏸ PAUSA</button>
+      <button onclick="stopGame()">⏸ PAUSE</button>
       <button onclick="resetGame()">🔄 RESET</button>
       <button onclick="shuffleDeck()" style="grid-column: span 2;">🔀 SHUFFLE DECK</button>
       <div style="grid-column: span 2; padding: 10px 0; text-align: center;">
-        <span style="font-size: 0.7rem; opacity: 0.5;">SPEED</span>
         <input type="range" id="speed" min="2" max="10" value="4" style="width:100%; accent-color: white;">
       </div>
     </div>
   </div>
 
   <div class="side-panel">
-    <div class="title">Full History</div>
+    <div class="title-header">Full History</div>
     <div id="fullHistory" class="history-wall"></div>
   </div>
 </div>
@@ -216,7 +238,6 @@ function talk(t) {
 
 function next() {
   let card = null;
-
   if (rigQueue.length > 0) {
     card = rigQueue.shift();
   } else if (pool.length > 0) {
@@ -238,12 +259,7 @@ function renderMain(name) {
   const img = document.getElementById('mainImg');
   const label = document.getElementById('mainLabel');
   
-  // Instant visual feedback for no-lag experience
   wrap.classList.add('slide-out');
-  
-  // Pre-load image
-  const tempImg = new Image();
-  tempImg.src = cardImgs[name];
   
   setTimeout(() => {
     img.src = cardImgs[name];
@@ -252,7 +268,7 @@ function renderMain(name) {
     wrap.classList.remove('slide-out');
     wrap.classList.add('slide-in');
     talk(name);
-  }, 150); // Reduced delay for snappier feel
+  }, 150);
 }
 
 function updateSides(lastCard) {
@@ -271,7 +287,6 @@ function updateSides(lastCard) {
 function shuffleDeck() {
   stopGame();
   const wrap = document.getElementById('mainCard');
-  wrap.classList.remove('slide-out');
   wrap.classList.add('shuffling');
   
   setTimeout(() => {
