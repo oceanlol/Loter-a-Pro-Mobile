@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -95,7 +95,6 @@
   .slide-out { opacity: 0; transform: translateY(40px) scale(0.9); }
   .slide-in { opacity: 1; transform: translateY(0) scale(1); }
   
-  /* Shuffle Animation */
   .shuffling { animation: shuffleEffect 0.1s infinite; }
   @keyframes shuffleEffect {
     0% { transform: translate(2px, 2px); }
@@ -142,7 +141,7 @@
 
 <div class="app-grid">
   <div class="side-panel">
-    <div class="title">Anteriores</div>
+    <div class="title">Previous</div>
     <div id="prevList" class="history-wall"></div>
   </div>
 
@@ -153,24 +152,25 @@
         <img id="mainImg" src="">
       </div>
     </div>
-    <h1 class="label-text" id="mainLabel">LISTOS</h1>
-    <div class="deck-count" id="deckCount">54 RESTANTES</div>
+    <h1 class="label-text" id="mainLabel">READY</h1>
+    <div class="deck-count" id="deckCount">54 REMAINING</div>
 
     <div class="controls">
-      <button class="btn-start" id="startBtn" onclick="startGame()">▶ INICIAR JUEGO</button>
+      <button class="btn-start" id="startBtn" onclick="startGame()">▶ START GAME</button>
       <button onclick="activateCaller()">🎭 CALLER MODE</button>
       <button class="btn-win" onclick="triggerWinner()">🏆 LOTERÍA!</button>
-      <button onclick="stopGame()">⏸ PAUSA</button>
-      <button onclick="resetGame()">🔄 REINICIAR</button>
-      <button onclick="shuffleDeck()" style="grid-column: span 2;">🔀 MEZCLAR MAZO</button>
-      <div style="grid-column: span 2; padding: 10px 0;">
+      <button onclick="stopGame()">⏸ PAUSE</button>
+      <button onclick="resetGame()">🔄 RESET</button>
+      <button onclick="shuffleDeck()" style="grid-column: span 2;">🔀 SHUFFLE DECK</button>
+      <div style="grid-column: span 2; padding: 10px 0; text-align: center;">
+        <span style="font-size: 0.7rem; opacity: 0.5;">SPEED</span>
         <input type="range" id="speed" min="2" max="10" value="4" style="width:100%; accent-color: white;">
       </div>
     </div>
   </div>
 
   <div class="side-panel">
-    <div class="title">Historial Completo</div>
+    <div class="title">Full History</div>
     <div id="fullHistory" class="history-wall"></div>
   </div>
 </div>
@@ -224,7 +224,7 @@ function next() {
     renderMain(card);
   } else {
     stopGame();
-    document.getElementById('mainLabel').innerText = "FIN";
+    document.getElementById('mainLabel').innerText = "FINISH";
   }
 }
 
@@ -237,7 +237,7 @@ function renderMain(name) {
   setTimeout(() => {
     img.src = cardImgs[name];
     label.innerText = name;
-    document.getElementById('deckCount').innerText = `${pool.length + rigQueue.length} RESTANTES`;
+    document.getElementById('deckCount').innerText = `${pool.length + rigQueue.length} REMAINING`;
     wrap.classList.remove('slide-out');
     wrap.classList.add('slide-in');
     talk(name);
@@ -262,7 +262,6 @@ function shuffleDeck() {
   const wrap = document.getElementById('mainCard');
   wrap.classList.remove('slide-out');
   wrap.classList.add('shuffling');
-  talk("Barajeando");
   
   setTimeout(() => {
     wrap.classList.remove('shuffling');
@@ -270,8 +269,8 @@ function shuffleDeck() {
     history = [];
     document.getElementById('prevList').innerHTML = '';
     document.getElementById('fullHistory').innerHTML = '';
-    document.getElementById('mainLabel').innerText = "LISTOS";
-    document.getElementById('deckCount').innerText = "50 RESTANTES";
+    document.getElementById('mainLabel').innerText = "READY";
+    document.getElementById('deckCount').innerText = "50 REMAINING";
   }, 1000);
 }
 
@@ -297,8 +296,8 @@ function resetGame() {
   document.getElementById('prevList').innerHTML = '';
   document.getElementById('fullHistory').innerHTML = '';
   document.getElementById('mainCard').classList.add('slide-out');
-  document.getElementById('mainLabel').innerText = "LISTOS";
-  document.getElementById('deckCount').innerText = "50 RESTANTES";
+  document.getElementById('mainLabel').innerText = "READY";
+  document.getElementById('deckCount').innerText = "50 REMAINING";
 }
 
 function activateCaller() {
