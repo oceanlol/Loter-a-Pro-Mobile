@@ -233,31 +233,44 @@ let rigQueue = [];
 let history = [];
 let gameLoop = null;
 
-// New logic to find the best Spanish voice on iPadOS
+// iOS & Bluetooth fixes
+let audioContext = null;
+
+function keepBluetoothAwake() {
+  // Creates a non-audible frequency playing in the background to prevent Bluetooth sleep on iOS
+  if (!audioContext) {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    gainNode.gain.value = 0.001; // Virtually silent
+    oscillator.start(0);
+  } else if (audioContext.state === 'suspended') {
+    audioContext.resume();
+  }
+}
+
 function getBestSpanishVoice() {
   const voices = speechSynthesis.getVoices();
-  
-  // 1. Look for premium/enhanced Mexican Spanish voices (best for Lotería!)
+  // Attempt to grab premium Mexican Spanish or fall back to any Spanish
   let voice = voices.find(v => v.lang === 'es-MX' && (v.name.includes('Premium') || v.name.includes('enhanced')));
-  
-  // 2. Fallback to any Mexican Spanish voice
   if (!voice) voice = voices.find(v => v.lang === 'es-MX');
-  
-  // 3. Fallback to any Spanish voice (Spain, Argentina, etc.)
   if (!voice) voice = voices.find(v => v.lang.startsWith('es'));
-  
   return voice;
 }
 
 function talk(t) {
+  keepBluetoothAwake(); // Keep waking up the connection right before speaking
   speechSynthesis.cancel();
-  const m = new SpeechSynthesisUtterance(t);
   
+  const m = new SpeechSynthesisUtterance(t);
   const bestVoice = getBestSpanishVoice();
   if (bestVoice) {
     m.voice = bestVoice;
   } else {
-    m.lang = 'es-MX'; // Fallback if voices haven't loaded yet
+    m.lang = 'es-MX';
   }
   
   m.rate = 0.95;
@@ -330,10 +343,16 @@ function shuffleDeck() {
 
 function startGame() {
   stopGame();
+  
+  // CRITICAL FOR IOS: Unlock the audio context directly inside the click event
+  keepBluetoothAwake();
+
   if (history.length === 0 && pool.length === 0) {
     pool = names.filter(name => !reserved.includes(name)).sort(() => Math.random() - 0.5);
   }
+  
   talk("¡Corre y se va!");
+  
   setTimeout(() => {
     next();
     gameLoop = setInterval(next, document.getElementById('speed').value * 1000);
@@ -366,7 +385,6 @@ function triggerWinner() {
   document.getElementById('mainLabel').innerText = "¡LOTERÍA!";
 }
 
-// Fixed onvoiceschanged to ensure iPad loads all available high-quality voices
 if (typeof speechSynthesis !== 'undefined' && speechSynthesis.onvoiceschanged !== undefined) {
   speechSynthesis.onvoiceschanged = () => { speechSynthesis.getVoices(); };
 }
