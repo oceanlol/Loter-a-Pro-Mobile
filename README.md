@@ -12,6 +12,7 @@
     --accent: #00f2fe;
     --card-white: #ffffff;
     --btn-text: #ffffff;
+    --win-gold: #f9d423;
   }
 
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -131,6 +132,10 @@
     font-size: 0.85rem;
     cursor: pointer;
     transition: 0.2s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
   }
 
   button:active { transform: scale(0.95); background: #2a2a30; }
@@ -143,10 +148,23 @@
     border: none;
   }
 
+  .btn-win {
+    background: linear-gradient(45deg, #f9d423, #ff4e50);
+    border: none;
+    color: #000;
+  }
+
   input[type=range] {
     width: 100%;
     accent-color: #fff;
     margin-top: 10px;
+  }
+
+  /* Winner Overlay */
+  .overlay {
+    position: fixed; top:0; left:0; width:100%; height:100%;
+    background: rgba(0,0,0,0.9);
+    display: none; justify-content: center; align-items: center; z-index: 100;
   }
 </style>
 </head>
@@ -176,8 +194,18 @@
   <div class="btn-grid">
     <button class="btn-start" onclick="startGame()">▶ INICIAR JUEGO</button>
     <button onclick="activateCaller()">🎭 CALLER MODE</button>
+    <button class="btn-win" onclick="triggerWinner()">🏆 LOTERÍA!</button>
     <button onclick="stopGame()">⏸ PAUSA</button>
-    <button onclick="resetGame()" style="grid-column: span 2;">🔄 REINICIAR</button>
+    <button onclick="resetGame()">🔄 REINICIAR</button>
+  </div>
+</div>
+
+<div class="overlay" id="winOverlay">
+  <div style="text-align:center;">
+    <h1 style="color:var(--win-gold); font-size:3rem; margin:0;">¡BUENAS!</h1>
+    <p>¿Revisar jugada?</p>
+    <button onclick="verifyCards()" style="background:white; color:black; width:100%; margin-bottom:10px;">REVISAR</button>
+    <button onclick="closeWin()" style="opacity:0.5; border:none; background:none;">Cerrar</button>
   </div>
 </div>
 
@@ -199,11 +227,12 @@ let rigQueue = [];
 let drawn = [];
 let loop = null;
 
-function say(t) {
+function say(t, cb) {
   speechSynthesis.cancel();
   const m = new SpeechSynthesisUtterance(t);
   m.lang = 'es-MX';
   m.rate = 0.95;
+  if(cb) m.onend = cb;
   speechSynthesis.speak(m);
 }
 
@@ -212,8 +241,7 @@ function next() {
 
   if (rigQueue.length > 0) {
     card = rigQueue.shift();
-    // Logic to ensure NO DUPES:
-    pool = pool.filter(c => c !== card);
+    pool = pool.filter(c => c !== card); // STRICT NO DUPES
   } else if (pool.length > 0) {
     card = pool.shift();
   }
@@ -240,7 +268,6 @@ function render(name) {
     title.innerText = name;
     document.getElementById('deckLeft').innerText = `${pool.length} RESTANTES`;
 
-    // Visual History
     const div = document.createElement('div');
     div.className = 'hist-card';
     div.innerHTML = `<img src="${imgs[name]}">`;
@@ -281,9 +308,30 @@ function resetGame() {
 }
 
 function activateCaller() {
-  // Silent Rig - No alerts.
-  // Set your winning sequence here
-  rigQueue = ["La Chalupa", "El Borracho", "La Sirena", "El Corazon"];
+  // RIGGED SEQUENCE: El Musico, El Catrin, La Dama, El Negrito
+  rigQueue = ["El Musico", "El Catrin", "La Dama", "El Negrito"];
+}
+
+function triggerWinner() {
+  stopGame();
+  say("¡Lotería!");
+  document.getElementById('winOverlay').style.display = 'flex';
+}
+
+function verifyCards() {
+  document.getElementById('winOverlay').style.display = 'none';
+  let i = 0;
+  function readBack() {
+    if (i < drawn.length) {
+      render(drawn[i]);
+      say(drawn[i], () => { i++; setTimeout(readBack, 600); });
+    }
+  }
+  readBack();
+}
+
+function closeWin() {
+  document.getElementById('winOverlay').style.display = 'none';
 }
 
 window.speechSynthesis.onvoiceschanged = () => { speechSynthesis.getVoices(); };
